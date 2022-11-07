@@ -15,6 +15,15 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    fn number(&self, start: usize, line: i32, tokens: &mut Vec<Token>) -> usize {
+        let mut i: usize = start;
+        while i < self.content.len() && self.content.chars().nth(i).unwrap().is_numeric() {
+            i += 1;
+        }
+        tokens.push(Token::new(TokenType::TOKEN_NUMBER, self.content[start..i].to_string(), line));
+        i
+    }
+
     pub fn new(file_path: &str) -> Self {
         Lexer {
             content: read_file(file_path),
@@ -23,9 +32,11 @@ impl Lexer {
     pub fn scan_tokens(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
         let mut line = 1;
-        for c in self.content.chars() {
+        let mut index = 0;
+        while index < self.content.len() {
+            let c = self.content.chars().nth(index).unwrap();
             match c {
-                '0'..='9' => tokens.push(Token::new(TokenType::TOKEN_NUMBER, c.to_string(), line)),
+                '0'..='9' => index = self.number(index, line, &mut tokens) - 1,
                 '\n' => line += 1,
                 ' ' => (),
                 '\t' => (),
@@ -36,6 +47,7 @@ impl Lexer {
                     line,
                 )),
             }
+            index+=1;
         }
         tokens.push(Token::new(TokenType::TOKEN_EOF, "".to_string(), line));
         tokens
