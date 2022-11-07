@@ -1,4 +1,3 @@
-use std::fmt::Error;
 /**
  * File: lexer.rs
  * Author: Devin Arena
@@ -7,6 +6,8 @@ use std::fmt::Error;
  */
 use std::fs;
 use std::process::exit;
+
+use crate::tokens;
 
 pub struct Lexer {
     content: String,
@@ -17,6 +18,27 @@ impl Lexer {
         Lexer {
             content: read_file(file_path),
         }
+    }
+    pub fn scan_tokens(&self) -> Vec<tokens::Token> {
+        let mut tokens = Vec::new();
+        let mut line = 1;
+        for c in self.content.chars() {
+            match c {
+                '0'..='9' => tokens.push(tokens::Token::new(
+                    tokens::TokenType::TOKEN_NUMBER,
+                    c.to_string(),
+                    line,
+                )),
+                '\n' => line += 1,
+                _ => (),
+            }
+        }
+        tokens.push(tokens::Token::new(
+            tokens::TokenType::TOKEN_EOF,
+            "".to_string(),
+            line,
+        ));
+        tokens
     }
 }
 
