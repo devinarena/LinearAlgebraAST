@@ -26,4 +26,5 @@ impl fmt::Display for Token {
 pub enum TokenType {
     TOKEN_EOF,
     TOKEN_NUMBER,
+    TOKEN_ERROR,
 }

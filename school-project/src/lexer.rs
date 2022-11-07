@@ -7,7 +7,8 @@
 use std::fs;
 use std::process::exit;
 
-use crate::tokens;
+use crate::tokens::Token;
+use crate::tokens::TokenType;
 
 pub struct Lexer {
     content: String,
@@ -19,25 +20,24 @@ impl Lexer {
             content: read_file(file_path),
         }
     }
-    pub fn scan_tokens(&self) -> Vec<tokens::Token> {
+    pub fn scan_tokens(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
         let mut line = 1;
         for c in self.content.chars() {
             match c {
-                '0'..='9' => tokens.push(tokens::Token::new(
-                    tokens::TokenType::TOKEN_NUMBER,
-                    c.to_string(),
+                '0'..='9' => tokens.push(Token::new(TokenType::TOKEN_NUMBER, c.to_string(), line)),
+                '\n' => line += 1,
+                ' ' => (),
+                '\t' => (),
+                '\r' => (),
+                _ => tokens.push(Token::new(
+                    TokenType::TOKEN_ERROR,
+                    "Unknown token: ".to_string() + &c.to_string(),
                     line,
                 )),
-                '\n' => line += 1,
-                _ => (),
             }
         }
-        tokens.push(tokens::Token::new(
-            tokens::TokenType::TOKEN_EOF,
-            "".to_string(),
-            line,
-        ));
+        tokens.push(Token::new(TokenType::TOKEN_EOF, "".to_string(), line));
         tokens
     }
 }
