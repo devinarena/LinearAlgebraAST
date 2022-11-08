@@ -16,10 +16,10 @@ fn main() {
     for token in tokens {
         println!("{}", token);
     }
-    let left: Literal = Literal::new(Value::new_scalar(1));
-    let mut right: Box<Literal> = Box::new(Literal::new(Value::new_scalar(2)));
+    let left: Literal = Literal::new(Value::new_scalar(1.0));
+    let mut right: Box<Literal> = Box::new(Literal::new(Value::new_scalar(2.0)));
     let lbin: Binary = Binary::new(Box::new(left), '+', right);
-    right = Box::new(Literal::new(Value::new_scalar(3)));
+    right = Box::new(Literal::new(Value::new_scalar(3.0)));
     let ast: Binary = Binary::new(Box::new(lbin), '*', right);
     let mut ast_printer = ast::astprinter::ASTPrinter::new(); 
     ast_printer.print(&ast);

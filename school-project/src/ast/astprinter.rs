@@ -22,7 +22,7 @@ impl ASTPrinter {
 impl Visitor<Value> for ASTPrinter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         unsafe {
-            print!("{}", literal.value.data.int.to_string());
+            print!("{}", literal.value.data.scalar.to_string());
         }
         literal.value
     }

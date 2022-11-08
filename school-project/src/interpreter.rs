@@ -13,8 +13,9 @@ impl Interpreter {
     pub fn new() -> Self {
         Interpreter {}
     }
-    fn runtime_error(&self, location: &str, message: &str) {
-        println!("Runtime error at {}: {}", location, message);
+    fn runtime_error(&self, message: &str) {
+        println!("Runtime error at {}", message);
+        std::process::exit(1);
     }
 }
 
@@ -49,8 +50,8 @@ impl Visitor<Value> for Interpreter {
             }
             '/' => {
                 unsafe {
-                    if (right.data.scalar == 0) {
-
+                    if right.data.scalar == 0.0 {
+                        self.runtime_error("division by zero");
                     }
                     Value::new_scalar(left.data.scalar / right.data.scalar)
                 }
