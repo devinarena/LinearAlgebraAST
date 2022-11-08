@@ -1,5 +1,7 @@
 mod lexer;
+mod interpreter;
 mod tokens;
+mod value;
 mod ast {
     pub mod astprinter;
     pub mod expression;
@@ -13,11 +15,13 @@ fn main() {
     for token in tokens {
         println!("{}", token);
     }
-    let left: Literal = Literal::new(1);
-    let mut right: Box<Literal> = Box::new(Literal::new(2));
+    let left: Literal = Literal::new(value::Value::new_int(1));
+    let mut right: Box<Literal> = Box::new(Literal::new(value::Value::new_int(2)));
     let lbin: Binary = Binary::new(Box::new(left), '+', right);
-    right = Box::new(Literal::new(3));
+    right = Box::new(Literal::new(value::Value::new_int(3)));
     let ast: Binary = Binary::new(Box::new(lbin), '*', right);
-    let mut ast_printer = ast::astprinter::ASTPrinter::new();
-    println!("{}", ast_printer.print(&ast));
+    let mut ast_printer = ast::astprinter::ASTPrinter::new(); 
+    ast_printer.print(&ast);
+    // let mut interpreter = interpreter::Interpreter::new();
+    // println!("{}", interpreter.interpret(&ast));
 }

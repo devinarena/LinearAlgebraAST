@@ -1,37 +1,33 @@
-use std::i32;
 
 use crate::value::Value;
+use crate::ast::expression::Expression;
 use crate::ast::expression::Visitor;
 use crate::ast::expression::Literal;
-use crate::ast::expression::Expression;
 use crate::ast::expression::Binary;
 
-
-pub struct ASTPrinter {
+pub struct Interpreter {
 
 }
-impl ASTPrinter {
+
+impl Interpreter {
     pub fn new() -> Self {
-        ASTPrinter {}
-    }
-    pub fn print(&mut self, expression: &dyn Expression<Value>) -> Value {
-        expression.accept(self)
+        Interpreter {}
     }
 }
 
-impl Visitor<Value> for ASTPrinter {
+impl Interpreter {
+    pub fn interpret(&mut self, ast: &dyn Expression<Value>) -> Value {
+        ast.accept(self)
+    }
+}
+
+impl Visitor<Value> for Interpreter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
-        unsafe {
-            print!("{}", literal.value.data.int.to_string());
-        }
         literal.value
     }
     fn visit_binary(&mut self, binary: &Binary) -> Value {
-        print!("(");
         let left = binary.left.accept(self);
-        print!(" {} ", binary.operator);
         let right = binary.right.accept(self);
-        print!(")");
         left
     }
 }
