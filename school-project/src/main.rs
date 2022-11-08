@@ -1,5 +1,6 @@
-mod lexer;
 mod interpreter;
+mod lexer;
+mod parser;
 mod tokens;
 mod value;
 mod ast {
@@ -8,24 +9,35 @@ mod ast {
 }
 use crate::ast::expression::Binary;
 use crate::ast::expression::Literal;
+use crate::parser::Parser;
 use crate::value::Value;
+use crate::value::ValueType;
+use crate::ast::astprinter::ASTPrinter;
+use crate::interpreter::Interpreter;
 
 fn main() {
     let lexer = lexer::Lexer::new("file.m");
     let tokens = lexer.scan_tokens();
-    for token in tokens {
+    for token in &tokens {
         println!("{}", token);
     }
-    let left: Literal = Literal::new(Value::new_scalar(1.0));
-    let mut right: Box<Literal> = Box::new(Literal::new(Value::new_scalar(2.0)));
-    let lbin: Binary = Binary::new(Box::new(left), '+', right);
-    right = Box::new(Literal::new(Value::new_scalar(3.0)));
-    let ast: Binary = Binary::new(Box::new(lbin), '*', right);
-    let mut ast_printer = ast::astprinter::ASTPrinter::new(); 
-    ast_printer.print(&ast);
-    let mut interpreter = interpreter::Interpreter::new();
-    println!("");
-    unsafe {
-        println!("{}", interpreter.interpret(&ast).data.scalar);
+
+    let mut parser: Parser = Parser::new(tokens);
+    let ast = parser.parse();
+
+    match ast {
+        Ok(ast) => {
+            let mut ast_printer = ASTPrinter::new();
+            ast_printer.print(ast.as_ref());
+            let mut interpreter = Interpreter::new();
+            println!("");
+            match interpreter.interpret(ast.as_ref()).data {
+                ValueType::SCALAR(s) => println!("{}", s.data),
+                ValueType::MATRIX(_m) => println!("Matrix"),
+            }
+        }
+        Err(error) => {
+            println!("{}", error);
+        }
     }
 }

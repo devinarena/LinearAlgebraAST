@@ -1,13 +1,11 @@
-
-use crate::value::Value;
-use crate::ast::expression::Expression;
-use crate::ast::expression::Visitor;
-use crate::ast::expression::Literal;
 use crate::ast::expression::Binary;
+use crate::ast::expression::Expression;
+use crate::ast::expression::Literal;
+use crate::ast::expression::Visitor;
+use crate::value::Value;
+use crate::value::ValueType;
 
-pub struct Interpreter {
-
-}
+pub struct Interpreter {}
 
 impl Interpreter {
     pub fn new() -> Self {
@@ -27,33 +25,86 @@ impl Interpreter {
 
 impl Visitor<Value> for Interpreter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
-        literal.value
+        literal.value.clone()
     }
     fn visit_binary(&mut self, binary: &Binary) -> Value {
         let left = binary.left.accept(self);
         let right = binary.right.accept(self);
         match binary.operator {
             '+' => {
-                unsafe {
-                    Value::new_scalar(left.data.scalar + right.data.scalar)
+                if let Value {
+                    data: ValueType::SCALAR(s),
+                } = left
+                {
+                    if let Value {
+                        data: ValueType::SCALAR(s2),
+                    } = right
+                    {
+                        Value::new_scalar(s.data + s2.data)
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
+                    }
+                } else {
+                    self.runtime_error("Invalid operand");
+                    Value::new_scalar(0.0)
                 }
             }
             '-' => {
-                unsafe {
-                    Value::new_scalar(left.data.scalar - right.data.scalar)
+                if let Value {
+                    data: ValueType::SCALAR(s),
+                } = left
+                {
+                    if let Value {
+                        data: ValueType::SCALAR(s2),
+                    } = right
+                    {
+                        Value::new_scalar(s.data - s2.data)
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
+                    }
+                } else {
+                    self.runtime_error("Invalid operand");
+                    Value::new_scalar(0.0)
                 }
             }
             '*' => {
-                unsafe {
-                    Value::new_scalar(left.data.scalar * right.data.scalar)
+                if let Value {
+                    data: ValueType::SCALAR(s),
+                } = left
+                {
+                    if let Value {
+                        data: ValueType::SCALAR(s2),
+                    } = right
+                    {
+                        Value::new_scalar(s.data * s2.data)
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
+                    }
+                } else {
+                    self.runtime_error("Invalid operand");
+                    Value::new_scalar(0.0)
                 }
             }
             '/' => {
-                unsafe {
-                    if right.data.scalar == 0.0 {
-                        self.runtime_error("division by zero");
+                if let Value {
+                    data: ValueType::SCALAR(s),
+                } = left
+                {
+                    if let Value {
+                        data: ValueType::SCALAR(s2),
+                    } = right
+                    {
+                        Value::new_scalar(s.data / s2.data)
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
                     }
-                    Value::new_scalar(left.data.scalar / right.data.scalar)
+                } else {
+                    self.runtime_error("Invalid operand");
+                    Value::new_scalar(0.0)
                 }
             }
             _ => {

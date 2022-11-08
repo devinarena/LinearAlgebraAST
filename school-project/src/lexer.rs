@@ -15,7 +15,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    fn number(&self, start: usize, line: i32, tokens: &mut Vec<Token>) -> usize {
+    fn number(&self, start: usize, line: usize, tokens: &mut Vec<Token>) -> usize {
         let mut i: usize = start;
         while i < self.content.len() && self.content.chars().nth(i).unwrap().is_numeric() {
             i += 1;
@@ -28,7 +28,7 @@ impl Lexer {
         i
     }
 
-    fn identifier(&self, start: usize, line: i32, tokens: &mut Vec<Token>) -> usize {
+    fn identifier(&self, start: usize, line: usize, tokens: &mut Vec<Token>) -> usize {
         let mut i: usize = start;
         while i < self.content.len()
             && (self.content.chars().nth(i).unwrap().is_alphabetic()
@@ -51,7 +51,7 @@ impl Lexer {
     }
     pub fn scan_tokens(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
-        let mut line = 1;
+        let mut line: usize = 1;
         let mut index = 0;
         while index < self.content.len() {
             let c = self.content.chars().nth(index).unwrap();
@@ -62,6 +62,10 @@ impl Lexer {
                 ' ' => (),
                 '\t' => (),
                 '\r' => (),
+                '+' => tokens.push(Token::new(TokenType::TOKEN_PLUS, c.to_string(), line)),
+                '-' => tokens.push(Token::new(TokenType::TOKEN_MINUS, c.to_string(), line)),
+                '*' => tokens.push(Token::new(TokenType::TOKEN_STAR, c.to_string(), line)),
+                '/' => tokens.push(Token::new(TokenType::TOKEN_SLASH, c.to_string(), line)),
                 _ => tokens.push(Token::new(
                     TokenType::TOKEN_ERROR,
                     "Unknown token: ".to_string() + &c.to_string(),

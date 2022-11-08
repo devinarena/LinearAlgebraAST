@@ -1,30 +1,31 @@
 
+#[derive(Clone)]
 pub enum ValueType {
-    SCALAR,
-    VECTOR
+    SCALAR(Scalar),
+    MATRIX(Matrix),
 }
 
+#[derive(Clone)]
 pub struct Matrix {
     pub data: Vec<f64>,
     pub rows: usize,
     pub cols: usize
 }
 
-pub union Data {
-    pub scalar: f64,
-    pub matrix: std::mem::ManuallyDrop<Matrix>
+#[derive(Clone)]
+pub struct Scalar {
+    pub data: f64
 }
 
+#[derive(Clone)]
 pub struct Value {
-    pub vtype: ValueType,
-    pub data: Data,
+    pub data: ValueType,
 }
 
 impl Value {
     pub fn new_scalar(scalar: f64) -> Self {
         Value {
-            vtype: ValueType::SCALAR,
-            data: Data { scalar },
+            data: ValueType::SCALAR(Scalar { data: scalar }),
         }
     }
 }
