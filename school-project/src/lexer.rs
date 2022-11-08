@@ -20,7 +20,27 @@ impl Lexer {
         while i < self.content.len() && self.content.chars().nth(i).unwrap().is_numeric() {
             i += 1;
         }
-        tokens.push(Token::new(TokenType::TOKEN_NUMBER, self.content[start..i].to_string(), line));
+        tokens.push(Token::new(
+            TokenType::TOKEN_NUMBER,
+            self.content[start..i].to_string(),
+            line,
+        ));
+        i
+    }
+
+    fn identifier(&self, start: usize, line: i32, tokens: &mut Vec<Token>) -> usize {
+        let mut i: usize = start;
+        while i < self.content.len()
+            && (self.content.chars().nth(i).unwrap().is_alphabetic()
+                || self.content.chars().nth(i).unwrap().is_numeric())
+        {
+            i += 1;
+        }
+        let lexeme: String = self.content[start..i].to_string();
+        match lexeme {
+            // "let" => tokens.push(Token::new(TokenType::TOKEN_LET, lexeme, line)),
+            _ => tokens.push(Token::new(TokenType::TOKEN_IDENTIFIER, lexeme, line)),
+        }
         i
     }
 
@@ -37,6 +57,7 @@ impl Lexer {
             let c = self.content.chars().nth(index).unwrap();
             match c {
                 '0'..='9' => index = self.number(index, line, &mut tokens) - 1,
+                'a'..='z' | 'A'..='Z' => index = self.identifier(index, line, &mut tokens) - 1,
                 '\n' => line += 1,
                 ' ' => (),
                 '\t' => (),
@@ -47,7 +68,7 @@ impl Lexer {
                     line,
                 )),
             }
-            index+=1;
+            index += 1;
         }
         tokens.push(Token::new(TokenType::TOKEN_EOF, "".to_string(), line));
         tokens
