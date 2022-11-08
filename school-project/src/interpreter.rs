@@ -13,6 +13,9 @@ impl Interpreter {
     pub fn new() -> Self {
         Interpreter {}
     }
+    fn runtime_error(&self, location: &str, message: &str) {
+        println!("Runtime error at {}: {}", location, message);
+    }
 }
 
 impl Interpreter {
@@ -31,22 +34,25 @@ impl Visitor<Value> for Interpreter {
         match binary.operator {
             '+' => {
                 unsafe {
-                    Value::new_int(left.data.int + right.data.int)
+                    Value::new_scalar(left.data.scalar + right.data.scalar)
                 }
             }
             '-' => {
                 unsafe {
-                    Value::new_int(left.data.int - right.data.int)
+                    Value::new_scalar(left.data.scalar - right.data.scalar)
                 }
             }
             '*' => {
                 unsafe {
-                    Value::new_int(left.data.int * right.data.int)
+                    Value::new_scalar(left.data.scalar * right.data.scalar)
                 }
             }
             '/' => {
                 unsafe {
-                    Value::new_int(left.data.int / right.data.int)
+                    if (right.data.scalar == 0) {
+
+                    }
+                    Value::new_scalar(left.data.scalar / right.data.scalar)
                 }
             }
             _ => {

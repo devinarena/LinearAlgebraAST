@@ -8,6 +8,7 @@ mod ast {
 }
 use crate::ast::expression::Binary;
 use crate::ast::expression::Literal;
+use crate::value::Value;
 
 fn main() {
     let lexer = lexer::Lexer::new("file.m");
@@ -15,16 +16,16 @@ fn main() {
     for token in tokens {
         println!("{}", token);
     }
-    let left: Literal = Literal::new(value::Value::new_int(1));
-    let mut right: Box<Literal> = Box::new(Literal::new(value::Value::new_int(2)));
+    let left: Literal = Literal::new(Value::new_scalar(1));
+    let mut right: Box<Literal> = Box::new(Literal::new(Value::new_scalar(2)));
     let lbin: Binary = Binary::new(Box::new(left), '+', right);
-    right = Box::new(Literal::new(value::Value::new_int(3)));
+    right = Box::new(Literal::new(Value::new_scalar(3)));
     let ast: Binary = Binary::new(Box::new(lbin), '*', right);
     let mut ast_printer = ast::astprinter::ASTPrinter::new(); 
     ast_printer.print(&ast);
     let mut interpreter = interpreter::Interpreter::new();
     println!("");
     unsafe {
-        println!("{}", interpreter.interpret(&ast).data.int);
+        println!("{}", interpreter.interpret(&ast).data.scalar);
     }
 }
