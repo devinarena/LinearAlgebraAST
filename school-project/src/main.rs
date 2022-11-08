@@ -22,6 +22,9 @@ fn main() {
     let ast: Binary = Binary::new(Box::new(lbin), '*', right);
     let mut ast_printer = ast::astprinter::ASTPrinter::new(); 
     ast_printer.print(&ast);
-    // let mut interpreter = interpreter::Interpreter::new();
-    // println!("{}", interpreter.interpret(&ast));
+    let mut interpreter = interpreter::Interpreter::new();
+    println!("");
+    unsafe {
+        println!("{}", interpreter.interpret(&ast).data.int);
+    }
 }

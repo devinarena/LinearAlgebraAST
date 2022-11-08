@@ -30,7 +30,7 @@ impl Visitor<Value> for ASTPrinter {
         print!("(");
         let left = binary.left.accept(self);
         print!(" {} ", binary.operator);
-        let right = binary.right.accept(self);
+        let _right = binary.right.accept(self);
         print!(")");
         left
     }

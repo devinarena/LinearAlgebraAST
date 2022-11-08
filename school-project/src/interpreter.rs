@@ -28,6 +28,30 @@ impl Visitor<Value> for Interpreter {
     fn visit_binary(&mut self, binary: &Binary) -> Value {
         let left = binary.left.accept(self);
         let right = binary.right.accept(self);
-        left
+        match binary.operator {
+            '+' => {
+                unsafe {
+                    Value::new_int(left.data.int + right.data.int)
+                }
+            }
+            '-' => {
+                unsafe {
+                    Value::new_int(left.data.int - right.data.int)
+                }
+            }
+            '*' => {
+                unsafe {
+                    Value::new_int(left.data.int * right.data.int)
+                }
+            }
+            '/' => {
+                unsafe {
+                    Value::new_int(left.data.int / right.data.int)
+                }
+            }
+            _ => {
+                panic!("Unknown operator: {}", binary.operator);
+            }
+        }
     }
 }
