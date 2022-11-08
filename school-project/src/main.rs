@@ -1,9 +1,10 @@
 mod lexer;
 mod tokens;
 mod ast {
-    pub mod expression;
     pub mod astprinter;
+    pub mod expression;
 }
+use crate::ast::expression::Binary;
 use crate::ast::expression::Literal;
 
 fn main() {
@@ -12,7 +13,11 @@ fn main() {
     for token in tokens {
         println!("{}", token);
     }
-    let ast = Literal::new(1);
+    let left: Literal = Literal::new(1);
+    let mut right: Box<Literal> = Box::new(Literal::new(2));
+    let lbin: Binary = Binary::new(Box::new(left), '+', right);
+    right = Box::new(Literal::new(3));
+    let ast: Binary = Binary::new(Box::new(lbin), '*', right);
     let mut ast_printer = ast::astprinter::ASTPrinter::new();
     println!("{}", ast_printer.print(&ast));
 }
