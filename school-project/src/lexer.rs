@@ -19,6 +19,13 @@ impl Lexer {
         let mut i: usize = start;
         while i < self.content.len() && self.content.chars().nth(i).unwrap().is_numeric() {
             i += 1;
+            if i < self.content.len() && self.content.chars().nth(i).unwrap() == '.' {
+                i += 1;
+                while i < self.content.len() && self.content.chars().nth(i).unwrap().is_numeric() {
+                    i += 1;
+                }
+                break;
+            }
         }
         tokens.push(Token::new(
             TokenType::TOKEN_NUMBER,
@@ -52,7 +59,7 @@ impl Lexer {
     pub fn scan_tokens(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
         let mut line: usize = 1;
-        let mut index = 0;
+        let mut index: usize = 0;
         while index < self.content.len() {
             let c = self.content.chars().nth(index).unwrap();
             match c {
@@ -66,6 +73,61 @@ impl Lexer {
                 '-' => tokens.push(Token::new(TokenType::TOKEN_MINUS, c.to_string(), line)),
                 '*' => tokens.push(Token::new(TokenType::TOKEN_STAR, c.to_string(), line)),
                 '/' => tokens.push(Token::new(TokenType::TOKEN_SLASH, c.to_string(), line)),
+                '=' => {
+                    if self.content.chars().nth(index + 1).unwrap() == '=' {
+                        tokens.push(Token::new(
+                            TokenType::TOKEN_EQUAL_EQUAL,
+                            "==".to_string(),
+                            line,
+                        ));
+                        index += 1;
+                    } else {
+                        tokens.push(Token::new(TokenType::TOKEN_EQUAL, c.to_string(), line));
+                    }
+                }
+                '!' => {
+                    if self.content.chars().nth(index + 1).unwrap() == '=' {
+                        tokens.push(Token::new(
+                            TokenType::TOKEN_BANG_EQUAL,
+                            "!=".to_string(),
+                            line,
+                        ));
+                        index += 1;
+                    } else {
+                        tokens.push(Token::new(TokenType::TOKEN_BANG, c.to_string(), line));
+                    }
+                }
+                '<' => {
+                    if self.content.chars().nth(index + 1).unwrap() == '=' {
+                        tokens.push(Token::new(
+                            TokenType::TOKEN_LESS_EQUAL,
+                            "<=".to_string(),
+                            line,
+                        ));
+                        index += 1;
+                    } else {
+                        tokens.push(Token::new(TokenType::TOKEN_LESS, c.to_string(), line));
+                    }
+                }
+                '>' => {
+                    if self.content.chars().nth(index + 1).unwrap() == '=' {
+                        tokens.push(Token::new(
+                            TokenType::TOKEN_GREATER_EQUAL,
+                            ">=".to_string(),
+                            line,
+                        ));
+                        index += 1;
+                    } else {
+                        tokens.push(Token::new(TokenType::TOKEN_GREATER, c.to_string(), line));
+                    }
+                }
+                '(' => tokens.push(Token::new(TokenType::TOKEN_LEFT_PAREN, c.to_string(), line)),
+                ')' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_PAREN, c.to_string(), line)),
+                '{' => tokens.push(Token::new(TokenType::TOKEN_LEFT_BRACE, c.to_string(), line)),
+                '}' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_BRACE, c.to_string(), line)),
+                ',' => tokens.push(Token::new(TokenType::TOKEN_COMMA, c.to_string(), line)),
+                '.' => tokens.push(Token::new(TokenType::TOKEN_DOT, c.to_string(), line)),
+                ';' => tokens.push(Token::new(TokenType::TOKEN_SEMICOLON, c.to_string(), line)),
                 _ => tokens.push(Token::new(
                     TokenType::TOKEN_ERROR,
                     "Unknown token: ".to_string() + &c.to_string(),

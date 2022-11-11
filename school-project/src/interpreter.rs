@@ -2,6 +2,8 @@ use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Visitor;
+use crate::tokens::Token;
+use crate::tokens::TokenType;
 use crate::value::Value;
 use crate::value::ValueType;
 
@@ -27,11 +29,27 @@ impl Visitor<Value> for Interpreter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         literal.value.clone()
     }
+    fn visit_unary(&mut self, unary: &crate::ast::expression::Unary) -> Value {
+        let right = unary.right.accept(self);
+        match unary.operator.token_type {
+            TokenType::TOKEN_MINUS => match right.data {
+                ValueType::SCALAR(s) => Value::new_scalar(s.data * -1.0),
+                ValueType::MATRIX(_m) => {
+                    self.runtime_error("Cannot negate a matrix");
+                    Value::new_scalar(0.0)
+                }
+            },
+            _ => {
+                self.runtime_error("Invalid unary operator");
+                Value::new_scalar(0.0)
+            }
+        }
+    }
     fn visit_binary(&mut self, binary: &Binary) -> Value {
         let left = binary.left.accept(self);
         let right = binary.right.accept(self);
-        match binary.operator {
-            '+' => {
+        match binary.operator.token_type {
+            TokenType::TOKEN_PLUS => {
                 if let Value {
                     data: ValueType::SCALAR(s),
                 } = left
@@ -50,7 +68,7 @@ impl Visitor<Value> for Interpreter {
                     Value::new_scalar(0.0)
                 }
             }
-            '-' => {
+            TokenType::TOKEN_MINUS => {
                 if let Value {
                     data: ValueType::SCALAR(s),
                 } = left
@@ -69,7 +87,7 @@ impl Visitor<Value> for Interpreter {
                     Value::new_scalar(0.0)
                 }
             }
-            '*' => {
+            TokenType::TOKEN_STAR => {
                 if let Value {
                     data: ValueType::SCALAR(s),
                 } = left
@@ -88,7 +106,7 @@ impl Visitor<Value> for Interpreter {
                     Value::new_scalar(0.0)
                 }
             }
-            '/' => {
+            TokenType::TOKEN_SLASH => {
                 if let Value {
                     data: ValueType::SCALAR(s),
                 } = left
@@ -111,5 +129,9 @@ impl Visitor<Value> for Interpreter {
                 panic!("Unknown operator: {}", binary.operator);
             }
         }
+    }
+
+    fn visit_grouping(&mut self, grouping: &crate::ast::expression::Grouping) -> Value {
+        grouping.expression.accept(self)
     }
 }

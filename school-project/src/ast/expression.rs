@@ -1,8 +1,11 @@
 use crate::value::Value;
+use crate::tokens::Token;
 
 pub trait Visitor<T> {
     fn visit_literal(&mut self, literal: &Literal) -> T;
+    fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
+    fn visit_grouping(&mut self, grouping: &Grouping) -> T;
 }
 
 pub trait Expression<T> {
@@ -22,15 +25,30 @@ impl Expression<Value> for Literal {
     }
 }
 
+pub struct Unary {
+    pub operator: Token,
+    pub right: Box<dyn Expression<Value>>,
+}
+impl Unary {
+    pub fn new(operator: Token, right: Box<dyn Expression<Value>>) -> Self {
+        Unary { operator, right }
+    }
+}
+impl Expression<Value> for Unary {
+    fn accept(&self, visitor: &mut dyn Visitor<Value>) -> Value {
+        visitor.visit_unary(self)
+    }
+}
+
 pub struct Binary {
     pub left: Box<dyn Expression<Value>>,
-    pub operator: char,
+    pub operator:  Token,
     pub right: Box<dyn Expression<Value>>,
 }
 impl Binary {
     pub fn new(
         left: Box<dyn Expression<Value>>,
-        operator: char,
+        operator: Token,
         right: Box<dyn Expression<Value>>,
     ) -> Self {
         Binary {
@@ -43,5 +61,19 @@ impl Binary {
 impl Expression<Value> for Binary {
     fn accept(&self, visitor: &mut dyn Visitor<Value>) -> Value {
         visitor.visit_binary(self)
+    }
+}
+
+pub struct Grouping {
+    pub expression: Box<dyn Expression<Value>>,
+}
+impl Grouping {
+    pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
+        Grouping { expression }
+    }
+}
+impl Expression<Value> for Grouping {
+    fn accept(&self, visitor: &mut dyn Visitor<Value>) -> Value {
+        self.expression.accept(visitor)
     }
 }

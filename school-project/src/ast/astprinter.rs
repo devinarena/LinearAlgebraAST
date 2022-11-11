@@ -1,4 +1,5 @@
 use crate::ast::expression::Binary;
+use crate::ast::expression::Unary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Visitor;
@@ -41,12 +42,26 @@ impl Visitor<Value> for ASTPrinter {
         value.to_owned()
     }
 
+    fn visit_unary(&mut self, unary: &Unary) -> Value {
+        print!("({} ", unary.operator.lexeme);
+        let value = unary.right.accept(self);
+        print!(")");
+        value
+    }
+
     fn visit_binary(&mut self, binary: &Binary) -> Value {
         print!("(");
         let left = binary.left.accept(self);
-        print!(" {} ", binary.operator);
+        print!(" {} ", binary.operator.lexeme);
         let _right = binary.right.accept(self);
         print!(")");
         left
+    }
+
+    fn visit_grouping(&mut self, grouping: &super::expression::Grouping) -> Value {
+        print!("(");
+        let value = grouping.expression.accept(self);
+        print!(")");
+        value
     }
 }
