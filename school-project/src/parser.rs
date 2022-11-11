@@ -1,6 +1,8 @@
+use std::any::TypeId;
+
+use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
-use crate::ast::expression::Binary;
 use crate::ast::expression::Unary;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
@@ -60,6 +62,39 @@ impl Parser {
         Err(format!("{} at line {}", message, self.peek().line))
     }
 
+    fn matrix(&mut self) -> Box<dyn Expression<Value>> {
+        let mut matrix = Vec::new();
+        let mut row = Vec::new();
+        let mut rows: usize = 0;
+        let mut cols: usize = 0;
+        while !self.check(TokenType::TOKEN_RIGHT_BRACKET) && !self.is_at_end() {
+            if self.check(TokenType::TOKEN_SEMICOLON) {
+                if cols == 0 {
+                    cols = row.len();
+                } else if cols != row.len() {
+                    panic!("Invalid matrix");
+                }
+                rows += 1;
+                matrix.push(row);
+                row = Vec::new();
+                self.advance();
+                continue;
+            }
+            let expr = self.expression();
+            // check if literal
+            match TypeId::of::<Literal>() == TypeId::of::<expr.as_ref()>() {
+                true => {
+                    let literal = expr.as_any().downcast_ref::<Literal>().unwrap();
+                    row.push(literal.value.clone());
+                }
+                false => panic!("Invalid matrix"),
+            }
+        }
+        matrix.push(row);
+        self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix")?;
+        Box::new(Literal::new(Value::new_matrix(matrix, rows, cols)))
+    }
+
     fn literal(&mut self) -> Box<dyn Expression<Value>> {
         self.advance();
         let token = self.previous();
@@ -68,9 +103,16 @@ impl Parser {
                 let number: f64 = token.lexeme.parse::<f64>().unwrap();
                 Value::new_scalar(number)
             }
+            TokenType::TOKEN_LEFT_BRACKET => self.matrix(),
             TokenType::TOKEN_LEFT_PAREN => {
                 let expr = self.expression();
-                if self.consume(TokenType::TOKEN_RIGHT_PAREN, "Expected ')' after expression").is_err() {
+                if self
+                    .consume(
+                        TokenType::TOKEN_RIGHT_PAREN,
+                        "Expected ')' after expression",
+                    )
+                    .is_err()
+                {
                     return Box::new(Literal::new(Value::new_scalar(0.0)));
                 }
                 return expr;

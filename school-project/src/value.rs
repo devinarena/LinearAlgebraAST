@@ -28,4 +28,10 @@ impl Value {
             data: ValueType::SCALAR(Scalar { data: scalar }),
         }
     }
+
+    pub fn new_matrix(matrix: Vec<f64>, rows: usize, cols: usize) -> Self {
+        Value {
+            data: ValueType::MATRIX(Matrix { data: matrix, rows, cols }),
+        }
+    }
 }

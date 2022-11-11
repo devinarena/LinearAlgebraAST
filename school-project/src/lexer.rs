@@ -125,6 +125,8 @@ impl Lexer {
                 ')' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_PAREN, c.to_string(), line)),
                 '{' => tokens.push(Token::new(TokenType::TOKEN_LEFT_BRACE, c.to_string(), line)),
                 '}' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_BRACE, c.to_string(), line)),
+                '[' => tokens.push(Token::new(TokenType::TOKEN_LEFT_BRACKET, c.to_string(), line)),
+                ']' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_BRACKET, c.to_string(), line)),
                 ',' => tokens.push(Token::new(TokenType::TOKEN_COMMA, c.to_string(), line)),
                 '.' => tokens.push(Token::new(TokenType::TOKEN_DOT, c.to_string(), line)),
                 ';' => tokens.push(Token::new(TokenType::TOKEN_SEMICOLON, c.to_string(), line)),

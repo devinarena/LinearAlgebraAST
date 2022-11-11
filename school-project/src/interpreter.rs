@@ -115,7 +115,12 @@ impl Visitor<Value> for Interpreter {
                         data: ValueType::SCALAR(s2),
                     } = right
                     {
-                        Value::new_scalar(s.data / s2.data)
+                        if s2.data == 0.0 {
+                            self.runtime_error("Cannot divide by zero");
+                            Value::new_scalar(0.0)
+                        } else {
+                            Value::new_scalar(s.data / s2.data)
+                        }
                     } else {
                         self.runtime_error("Invalid operand");
                         Value::new_scalar(0.0)
