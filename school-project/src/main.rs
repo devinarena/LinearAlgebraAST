@@ -31,10 +31,7 @@ fn main() {
             ast_printer.print(ast.as_ref());
             let mut interpreter = Interpreter::new();
             println!("");
-            match interpreter.interpret(ast.as_ref()).data {
-                ValueType::SCALAR(s) => println!("{}", s.data),
-                ValueType::MATRIX(_m) => println!("Matrix"),
-            }
+            interpreter.interpret(ast.as_ref()).print();
         }
         Err(error) => {
             println!("{}", error);

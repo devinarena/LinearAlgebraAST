@@ -98,12 +98,38 @@ impl Visitor<Value> for Interpreter {
                     {
                         Value::new_scalar(s.data * s2.data)
                     } else {
+                        // can only be a matrix
+                        if let Value {
+                            data: ValueType::MATRIX(m),
+                        } = right
+                        {
+                            let mut matrix = m.clone();
+                            matrix.scale(s.data);
+                            Value { data: ValueType::MATRIX(matrix) }
+                        } else {
+                            self.runtime_error("Invalid operand");
+                            Value::new_scalar(0.0)
+                        }
+                    }
+                } else {
+                    if let Value {
+                        data: ValueType::MATRIX(m),
+                    } = left {
+                        if let Value {
+                            data: ValueType::SCALAR(s2),
+                        } = right
+                        {
+                            let mut matrix = m.clone();
+                            matrix.scale(s2.data);
+                            Value { data: ValueType::MATRIX(matrix) }
+                        } else {
+                            self.runtime_error("Invalid operand");
+                            Value::new_scalar(0.0)
+                        }
+                    } else {
                         self.runtime_error("Invalid operand");
                         Value::new_scalar(0.0)
                     }
-                } else {
-                    self.runtime_error("Invalid operand");
-                    Value::new_scalar(0.0)
                 }
             }
             TokenType::TOKEN_SLASH => {

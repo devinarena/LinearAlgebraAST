@@ -11,6 +11,16 @@ pub struct Matrix {
     pub rows: usize,
     pub cols: usize
 }
+impl Matrix {
+    pub fn new(data: Vec<f64>, rows: usize, cols: usize) -> Self {
+        Matrix { data, rows, cols }
+    }
+    pub fn scale(&mut self, scalar: f64) {
+        for i in 0..self.data.len() {
+            self.data[i] *= scalar;
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct Scalar {
@@ -32,6 +42,26 @@ impl Value {
     pub fn new_matrix(matrix: Vec<f64>, rows: usize, cols: usize) -> Self {
         Value {
             data: ValueType::MATRIX(Matrix { data: matrix, rows, cols }),
+        }
+    }
+
+    pub fn print(&self) {
+        match &self.data {
+            ValueType::SCALAR(s) => println!("{}", s.data),
+            ValueType::MATRIX(m) => {
+                for i in 0..m.rows {
+                    for j in 0..m.cols {
+                        if j == 0 {
+                            print!("| ");
+                        }
+                        print!("{} ", m.data[i * m.cols + j]);
+                        if j == m.cols - 1 {
+                            print!("|");
+                        }
+                    }
+                    println!();
+                }
+            }
         }
     }
 }

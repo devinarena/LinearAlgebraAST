@@ -1,4 +1,4 @@
-use std::any::TypeId;
+use std::any::Any;
 
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
@@ -63,36 +63,35 @@ impl Parser {
     }
 
     fn matrix(&mut self) -> Box<dyn Expression<Value>> {
-        let mut matrix = Vec::new();
-        let mut row = Vec::new();
-        let mut rows: usize = 0;
+        let mut matrix: Vec<f64> = Vec::new();
+        let mut rows: usize = 1;
         let mut cols: usize = 0;
         while !self.check(TokenType::TOKEN_RIGHT_BRACKET) && !self.is_at_end() {
             if self.check(TokenType::TOKEN_SEMICOLON) {
                 if cols == 0 {
-                    cols = row.len();
-                } else if cols != row.len() {
+                    cols = matrix.len();
+                } else if matrix.len() % cols != 0 {
                     panic!("Invalid matrix");
                 }
                 rows += 1;
-                matrix.push(row);
-                row = Vec::new();
                 self.advance();
                 continue;
             }
-            let expr = self.expression();
-            // check if literal
-            match TypeId::of::<Literal>() == TypeId::of::<expr.as_ref()>() {
-                true => {
-                    let literal = expr.as_any().downcast_ref::<Literal>().unwrap();
-                    row.push(literal.value.clone());
+            match self.consume(TokenType::TOKEN_NUMBER, "Expected a number") {
+                Ok(number) => {
+                    matrix.push(number.lexeme.parse::<f64>().unwrap());
                 }
-                false => panic!("Invalid matrix"),
+                Err(e) => {
+                    panic!("{}", e);
+                }
             }
         }
-        matrix.push(row);
-        self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix")?;
-        Box::new(Literal::new(Value::new_matrix(matrix, rows, cols)))
+        match self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix") {
+            Ok(_) => return Box::new(Literal::new(Value::new_matrix(matrix, rows, cols))),
+            Err(e) => {
+                panic!("{}", e);
+            }
+        }
     }
 
     fn literal(&mut self) -> Box<dyn Expression<Value>> {
@@ -103,7 +102,7 @@ impl Parser {
                 let number: f64 = token.lexeme.parse::<f64>().unwrap();
                 Value::new_scalar(number)
             }
-            TokenType::TOKEN_LEFT_BRACKET => self.matrix(),
+            TokenType::TOKEN_LEFT_BRACKET => return self.matrix(),
             TokenType::TOKEN_LEFT_PAREN => {
                 let expr = self.expression();
                 if self

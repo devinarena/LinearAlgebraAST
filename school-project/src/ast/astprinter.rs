@@ -19,26 +19,7 @@ impl ASTPrinter {
 impl Visitor<Value> for ASTPrinter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         let value: &Value = &literal.value;
-        match value.data.clone() {
-            ValueType::SCALAR(s) => {
-                print!("{}", s.data);
-            }
-            ValueType::MATRIX(m) => {
-                print!("(");
-                for i in 0..m.rows {
-                    for j in 0..m.cols {
-                        print!("{}", m.data[i * m.cols + j]);
-                        if j != m.cols - 1 {
-                            print!(",");
-                        }
-                    }
-                    if i != m.rows - 1 {
-                        print!(";");
-                    }
-                }
-                print!(")");
-            }
-        }
+        value.print();
         value.to_owned()
     }
 
