@@ -8,19 +8,22 @@ mod ast {
     pub mod expression;
     pub mod statement;
 }
-use crate::ast::astprinter::ASTPrinter;
-use crate::ast::expression::Binary;
-use crate::ast::expression::Expression;
-use crate::ast::expression::Literal;
-use crate::ast::statement;
-use crate::ast::statement::Statement;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::value::Value;
-use crate::value::ValueType;
 
 fn main() {
-    let lexer = lexer::Lexer::new("file.m");
+    let args = std::env::args().collect::<Vec<String>>();
+
+    if args.len() == 0 {
+        println!("Usage: linalg <file>");
+        std::process::exit(1);
+    } if args.len() == 1 {
+        return;
+    }
+
+    let file = &args[1];
+
+    let lexer = lexer::Lexer::new(file);
     let tokens = lexer.scan_tokens();
     for token in &tokens {
         println!("{}", token);
@@ -29,7 +32,6 @@ fn main() {
     let mut parser: Parser = Parser::new(tokens);
     let statements = parser.parse();
 
-    let mut ast_printer = ASTPrinter::new();
     let mut interpreter = Interpreter::new();
 
     match statements {
@@ -40,4 +42,6 @@ fn main() {
             println!("{}", error);
         }
     }
+
+    
 }

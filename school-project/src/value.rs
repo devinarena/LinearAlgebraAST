@@ -12,9 +12,6 @@ pub struct Matrix {
     pub cols: usize
 }
 impl Matrix {
-    pub fn new(data: Vec<f64>, rows: usize, cols: usize) -> Self {
-        Matrix { data, rows, cols }
-    }
     pub fn scale(&mut self, scalar: f64) {
         for i in 0..self.data.len() {
             self.data[i] *= scalar;

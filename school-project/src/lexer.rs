@@ -131,6 +131,7 @@ impl Lexer {
                 ',' => tokens.push(Token::new(TokenType::TOKEN_COMMA, c.to_string(), line)),
                 '.' => tokens.push(Token::new(TokenType::TOKEN_DOT, c.to_string(), line)),
                 ';' => tokens.push(Token::new(TokenType::TOKEN_SEMICOLON, c.to_string(), line)),
+                '|' => tokens.push(Token::new(TokenType::TOKEN_PIPE, c.to_string(), line)),
                 _ => tokens.push(Token::new(
                     TokenType::TOKEN_ERROR,
                     "Unknown token: ".to_string() + &c.to_string(),

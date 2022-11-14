@@ -1,21 +1,23 @@
+use crate::ast::astprinter::ASTPrinter;
 use crate::ast::expression::Binary;
 use crate::ast::expression::ExprVisitor;
-use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
-use crate::ast::statement;
 use crate::ast::statement::Statement;
 use crate::ast::statement::StatementType;
 use crate::ast::statement::StmtVisitor;
-use crate::tokens::Token;
 use crate::tokens::TokenType;
 use crate::value::Value;
 use crate::value::ValueType;
 
-pub struct Interpreter {}
+pub struct Interpreter {
+    pub ast_printer: ASTPrinter,
+}
 
 impl Interpreter {
     pub fn new() -> Self {
-        Interpreter {}
+        Interpreter {
+            ast_printer: ASTPrinter::new(),
+        }
     }
     fn runtime_error(&self, message: &str) {
         println!("Runtime error at {}", message);
@@ -25,6 +27,9 @@ impl Interpreter {
         for statement in stmts {
             statement.accept(self);
         }
+    }
+    pub fn interpret_statement(&mut self, stmt: Statement) {
+        stmt.accept(self);
     }
 }
 
@@ -67,8 +72,35 @@ impl ExprVisitor<Value> for Interpreter {
                         Value::new_scalar(0.0)
                     }
                 } else {
-                    self.runtime_error("Invalid operand");
-                    Value::new_scalar(0.0)
+                    if let Value {
+                        data: ValueType::MATRIX(m),
+                    } = left
+                    {
+                        if let Value {
+                            data: ValueType::MATRIX(m2),
+                        } = right
+                        {
+                            if m.rows != m2.rows || m.cols != m2.cols {
+                                self.runtime_error("Invalid matrix dimensions for addition");
+                                Value::new_scalar(0.0)
+                            } else {
+                                let mut result: Vec<f64> = Vec::new();
+                                for i in 0..m.rows {
+                                    for j in 0..m.cols {
+                                        result
+                                            .push(m.data[i * m.cols + j] + m2.data[i * m.cols + j]);
+                                    }
+                                }
+                                Value::new_matrix(result, m.rows, m.cols)
+                            }
+                        } else {
+                            self.runtime_error("Invalid operand");
+                            Value::new_scalar(0.0)
+                        }
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
+                    }
                 }
             }
             TokenType::TOKEN_MINUS => {
@@ -86,8 +118,35 @@ impl ExprVisitor<Value> for Interpreter {
                         Value::new_scalar(0.0)
                     }
                 } else {
-                    self.runtime_error("Invalid operand");
-                    Value::new_scalar(0.0)
+                    if let Value {
+                        data: ValueType::MATRIX(m),
+                    } = left
+                    {
+                        if let Value {
+                            data: ValueType::MATRIX(m2),
+                        } = right
+                        {
+                            if m.rows != m2.rows || m.cols != m2.cols {
+                                self.runtime_error("Invalid matrix dimensions for addition");
+                                Value::new_scalar(0.0)
+                            } else {
+                                let mut result: Vec<f64> = Vec::new();
+                                for i in 0..m.rows {
+                                    for j in 0..m.cols {
+                                        result
+                                            .push(m.data[i * m.cols + j] - m2.data[i * m.cols + j]);
+                                    }
+                                }
+                                Value::new_matrix(result, m.rows, m.cols)
+                            }
+                        } else {
+                            self.runtime_error("Invalid operand");
+                            Value::new_scalar(0.0)
+                        }
+                    } else {
+                        self.runtime_error("Invalid operand");
+                        Value::new_scalar(0.0)
+                    }
                 }
             }
             TokenType::TOKEN_STAR => {

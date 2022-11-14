@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
@@ -9,9 +7,7 @@ use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
-use crate::value::Scalar;
 use crate::value::Value;
-use crate::value::ValueType;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -70,7 +66,7 @@ impl Parser {
         let mut rows: usize = 1;
         let mut cols: usize = 0;
         while !self.check(TokenType::TOKEN_RIGHT_BRACKET) && !self.is_at_end() {
-            if self.check(TokenType::TOKEN_SEMICOLON) {
+            if self.check(TokenType::TOKEN_PIPE) {
                 if cols == 0 {
                     cols = matrix.len();
                 } else if matrix.len() % cols != 0 {
@@ -88,6 +84,9 @@ impl Parser {
                     panic!("{}", e);
                 }
             }
+        }
+        if matrix.len() % cols != 0 {
+            panic!("Invalid matrix");
         }
         match self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix") {
             Ok(_) => return Box::new(Literal::new(Value::new_matrix(matrix, rows, cols))),

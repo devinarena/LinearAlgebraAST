@@ -50,6 +50,7 @@ pub enum TokenType {
     TOKEN_EQUAL_EQUAL,
     TOKEN_BANG,
     TOKEN_BANG_EQUAL,
+    TOKEN_PIPE,
     TOKEN_IDENTIFIER,
     TOKEN_PRINT
 }
