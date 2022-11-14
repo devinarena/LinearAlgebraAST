@@ -6,14 +6,18 @@ mod value;
 mod ast {
     pub mod astprinter;
     pub mod expression;
+    pub mod statement;
 }
+use crate::ast::astprinter::ASTPrinter;
 use crate::ast::expression::Binary;
+use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
+use crate::ast::statement;
+use crate::ast::statement::Statement;
+use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::value::Value;
 use crate::value::ValueType;
-use crate::ast::astprinter::ASTPrinter;
-use crate::interpreter::Interpreter;
 
 fn main() {
     let lexer = lexer::Lexer::new("file.m");
@@ -25,13 +29,22 @@ fn main() {
     let mut parser: Parser = Parser::new(tokens);
     let statements = parser.parse();
 
-    match ast {
-        Ok(ast) => {
-            let mut ast_printer = ASTPrinter::new();
-            ast_printer.print(ast.as_ref());
-            let mut interpreter = Interpreter::new();
-            println!("");
-            interpreter.interpret(statements).print();
+    match statements {
+        Ok(statements) => {
+            for stmt in statements {
+                match stmt {
+                    Statement::Expression(expr) => {
+                        let mut ast_printer = ASTPrinter::new();
+                        ast_printer.print(expr.expression.as_ref());
+                        let mut interpreter = Interpreter::new();
+                        let value = interpreter.interpret(expr.expression.as_ref());
+                        value.print();
+                    }
+                    _ => {
+                        println!("Statement invalid!");
+                    }
+                }
+            }
         }
         Err(error) => {
             println!("{}", error);

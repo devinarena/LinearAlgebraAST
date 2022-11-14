@@ -1,22 +1,29 @@
 
-pub trait Visitor<T> {
-    fn visit_expression_statement(&mut self, statement: &ExpressionStatement) -> T;
+use crate::value::Value;
+use crate::ast::expression::Expression;
+
+pub trait Visitor {
+    fn visit_expression_statement(&mut self, statement: &ExpressionStatement);
 }
 
-trait Statement<T> {
-    fn accept(&self, visitor: &mut T) -> ();
+pub trait StatementType {
+    fn accept(&self, visitor: &mut dyn Visitor) -> ();
 }
 
 pub struct ExpressionStatement {
-    pub expression: Box<Expression>,
+    pub expression: Box<dyn Expression<Value>>,
 }
 impl ExpressionStatement {
-    pub fn new(expression: Box<Expression>) -> Self {
+    pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
         ExpressionStatement { expression }
     }
 }
-impl Statement<Interpreter> for ExpressionStatement {
-    fn accept(&self, visitor: &mut Interpreter) -> () {
-        visitor.visit_expression_statement(self);
+impl StatementType for ExpressionStatement {
+    fn accept(&self, visitor: &mut dyn Visitor) -> () {
+        visitor.visit_expression_statement(self)
     }
+}
+
+pub enum Statement {
+    Expression(ExpressionStatement),
 }

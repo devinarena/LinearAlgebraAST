@@ -1,10 +1,11 @@
 use std::any::Any;
 
-use crate::ast::statement::Statement;
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
+use crate::ast::statement::ExpressionStatement;
+use crate::ast::statement::Statement;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
 use crate::value::Scalar;
@@ -186,11 +187,26 @@ impl Parser {
         self.equality()
     }
 
-    pub fn parse(&mut self) -> Result<Vec<dyn Expression<Value>>, String> {
-        let mut statements: Vec<Statement> = Vec::new();
+    fn expression_statement(&mut self) -> Statement {
+        let estmt = Statement::Expression {
+            0: ExpressionStatement::new(self.expression()),
+        };
+        self.consume(
+            TokenType::TOKEN_SEMICOLON,
+            "Expect ';' after expression statement",
+        );
+        estmt
+    }
+
+    fn statement(&mut self) -> Statement {
+        self.expression_statement()
+    }
+
+    pub fn parse(&mut self) -> Result<Vec<Statement>, String> {
+        let mut statements = Vec::new();
         while !self.is_at_end() {
-            statements.push(self.expression());
+            statements.push(self.statement());
         }
-        Ok(statements);
+        Ok(statements)
     }
 }
