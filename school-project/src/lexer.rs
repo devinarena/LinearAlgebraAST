@@ -11,7 +11,7 @@ use crate::tokens::Token;
 use crate::tokens::TokenType;
 
 pub struct Lexer {
-    content: String,
+    pub content: String,
 }
 
 impl Lexer {
@@ -57,6 +57,13 @@ impl Lexer {
             content: read_file(file_path),
         }
     }
+
+    pub fn new_empty() -> Self {
+        Lexer {
+            content: "".to_string()
+        }
+    }
+
     pub fn scan_tokens(&self) -> Vec<Token> {
         let mut tokens = Vec::new();
         let mut line: usize = 1;
@@ -123,11 +130,27 @@ impl Lexer {
                     }
                 }
                 '(' => tokens.push(Token::new(TokenType::TOKEN_LEFT_PAREN, c.to_string(), line)),
-                ')' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_PAREN, c.to_string(), line)),
+                ')' => tokens.push(Token::new(
+                    TokenType::TOKEN_RIGHT_PAREN,
+                    c.to_string(),
+                    line,
+                )),
                 '{' => tokens.push(Token::new(TokenType::TOKEN_LEFT_BRACE, c.to_string(), line)),
-                '}' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_BRACE, c.to_string(), line)),
-                '[' => tokens.push(Token::new(TokenType::TOKEN_LEFT_BRACKET, c.to_string(), line)),
-                ']' => tokens.push(Token::new(TokenType::TOKEN_RIGHT_BRACKET, c.to_string(), line)),
+                '}' => tokens.push(Token::new(
+                    TokenType::TOKEN_RIGHT_BRACE,
+                    c.to_string(),
+                    line,
+                )),
+                '[' => tokens.push(Token::new(
+                    TokenType::TOKEN_LEFT_BRACKET,
+                    c.to_string(),
+                    line,
+                )),
+                ']' => tokens.push(Token::new(
+                    TokenType::TOKEN_RIGHT_BRACKET,
+                    c.to_string(),
+                    line,
+                )),
                 ',' => tokens.push(Token::new(TokenType::TOKEN_COMMA, c.to_string(), line)),
                 '.' => tokens.push(Token::new(TokenType::TOKEN_DOT, c.to_string(), line)),
                 ';' => tokens.push(Token::new(TokenType::TOKEN_SEMICOLON, c.to_string(), line)),

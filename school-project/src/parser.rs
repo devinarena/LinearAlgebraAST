@@ -12,11 +12,36 @@ use crate::value::Value;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    error: bool,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser {
+            tokens,
+            current: 0,
+            error: false,
+        }
+    }
+
+    pub fn new_empty() -> Self {
+        Parser {
+            tokens: Vec::new(),
+            current: 0,
+            error: false,
+        }
+    }
+
+    pub fn set_tokens(&mut self, tokens: Vec<Token>) {
+        self.tokens = tokens;
+        self.current = 0;
+    }
+
+    pub fn parse_error(&mut self, content: String) {
+        let token = self.tokens.get(self.current).unwrap();
+        let line = token.line;
+        self.error = true;
+        println!("Error at line {}: {}", line, content);
     }
 
     fn previous(&mut self) -> &Token {
@@ -54,11 +79,31 @@ impl Parser {
         false
     }
 
-    fn consume(&mut self, token_type: TokenType, message: &str) -> Result<&Token, String> {
+    fn consume(&mut self, token_type: TokenType, message: &str) -> bool {
         if self.check(token_type) {
-            return Ok(self.advance());
+            self.advance();
+            return true;
         }
-        Err(format!("{} at line {}", message, self.peek().line))
+        self.parse_error(message.to_string());
+        return false;
+    }
+
+    fn synchronize(&mut self) {
+        self.advance();
+        while !self.is_at_end() {
+            if self.previous().token_type == TokenType::TOKEN_SEMICOLON {
+                self.error = false;
+                return;
+            }
+            match self.peek().token_type {
+                TokenType::TOKEN_PRINT => {
+                    self.error = false;
+                    return;
+                }
+                _ => (),
+            }
+            self.advance();
+        }
     }
 
     fn matrix(&mut self) -> Box<dyn Expression<Value>> {
@@ -70,29 +115,23 @@ impl Parser {
                 if cols == 0 {
                     cols = matrix.len();
                 } else if matrix.len() % cols != 0 {
-                    panic!("Invalid matrix");
+                    self.parse_error("Invalid matrix dimensions".to_string());
                 }
                 rows += 1;
                 self.advance();
                 continue;
             }
-            match self.consume(TokenType::TOKEN_NUMBER, "Expected a number") {
-                Ok(number) => {
-                    matrix.push(number.lexeme.parse::<f64>().unwrap());
-                }
-                Err(e) => {
-                    panic!("{}", e);
-                }
+            if self.consume(TokenType::TOKEN_NUMBER, "Expected a number") {
+                matrix.push(self.previous().lexeme.parse::<f64>().unwrap());
             }
         }
         if matrix.len() % cols != 0 {
-            panic!("Invalid matrix");
+            self.parse_error("Invalid matrix dimensions".to_string());
         }
-        match self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix") {
-            Ok(_) => return Box::new(Literal::new(Value::new_matrix(matrix, rows, cols))),
-            Err(e) => {
-                panic!("{}", e);
-            }
+        if self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix") {
+            return Box::new(Literal::new(Value::new_matrix(matrix, rows, cols)));
+        } else {
+            return Box::new(Literal::new(Value::new_scalar(0.0)));
         }
     }
 
@@ -107,18 +146,18 @@ impl Parser {
             TokenType::TOKEN_LEFT_BRACKET => return self.matrix(),
             TokenType::TOKEN_LEFT_PAREN => {
                 let expr = self.expression();
-                if self
-                    .consume(
-                        TokenType::TOKEN_RIGHT_PAREN,
-                        "Expected ')' after expression",
-                    )
-                    .is_err()
-                {
+                if !self.consume(
+                    TokenType::TOKEN_RIGHT_PAREN,
+                    "Expected ')' after expression",
+                ) {
                     return Box::new(Literal::new(Value::new_scalar(0.0)));
                 }
                 return expr;
             }
-            _ => panic!("Unexpected token: {}", token),
+            _ => {
+                self.parse_error("Unexpected token".to_string());
+                return Box::new(Literal::new(Value::new_scalar(0.0)));
+            }
         };
         Box::new(Literal::new(value))
     }
@@ -189,13 +228,12 @@ impl Parser {
 
     fn print_statement(&mut self) -> Statement {
         let value = self.expression();
-        match self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
-            Ok(_) => Statement::Print {
-                0: PrintStatement::new(value),
-            },
-            Err(e) => {
-                panic!("{}", e);
-            }
+        if self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
+            return Statement::Print(PrintStatement::new(value));
+        } else {
+            return Statement::Expression(ExpressionStatement::new(Box::new(Literal::new(
+                Value::new_scalar(0.0),
+            ))));
         }
     }
 
@@ -222,6 +260,10 @@ impl Parser {
         let mut statements: Vec<Statement> = Vec::new();
         while !self.is_at_end() {
             statements.push(self.statement());
+
+            if self.error {
+                self.synchronize();
+            }
         }
         Ok(statements)
     }
