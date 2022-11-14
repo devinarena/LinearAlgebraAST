@@ -1,5 +1,6 @@
 use std::any::Any;
 
+use crate::ast::statement::Statement;
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
@@ -185,8 +186,11 @@ impl Parser {
         self.equality()
     }
 
-    pub fn parse(&mut self) -> Result<Box<dyn Expression<Value>>, String> {
-        let expression = self.expression();
-        Ok(expression)
+    pub fn parse(&mut self) -> Result<Vec<dyn Expression<Value>>, String> {
+        let mut statements: Vec<Statement> = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.expression());
+        }
+        Ok(statements);
     }
 }

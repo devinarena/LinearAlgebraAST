@@ -23,7 +23,7 @@ fn main() {
     }
 
     let mut parser: Parser = Parser::new(tokens);
-    let ast = parser.parse();
+    let statements = parser.parse();
 
     match ast {
         Ok(ast) => {
@@ -31,7 +31,7 @@ fn main() {
             ast_printer.print(ast.as_ref());
             let mut interpreter = Interpreter::new();
             println!("");
-            interpreter.interpret(ast.as_ref()).print();
+            interpreter.interpret(statements).print();
         }
         Err(error) => {
             println!("{}", error);
