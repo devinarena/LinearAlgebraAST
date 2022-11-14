@@ -29,22 +29,12 @@ fn main() {
     let mut parser: Parser = Parser::new(tokens);
     let statements = parser.parse();
 
+    let mut ast_printer = ASTPrinter::new();
+    let mut interpreter = Interpreter::new();
+
     match statements {
         Ok(statements) => {
-            for stmt in statements {
-                match stmt {
-                    Statement::Expression(expr) => {
-                        let mut ast_printer = ASTPrinter::new();
-                        ast_printer.print(expr.expression.as_ref());
-                        let mut interpreter = Interpreter::new();
-                        let value = interpreter.interpret(expr.expression.as_ref());
-                        value.print();
-                    }
-                    _ => {
-                        println!("Statement invalid!");
-                    }
-                }
-            }
+            interpreter.interpret(statements);
         }
         Err(error) => {
             println!("{}", error);

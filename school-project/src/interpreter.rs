@@ -1,7 +1,11 @@
 use crate::ast::expression::Binary;
+use crate::ast::expression::ExprVisitor;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
-use crate::ast::expression::Visitor;
+use crate::ast::statement;
+use crate::ast::statement::Statement;
+use crate::ast::statement::StatementType;
+use crate::ast::statement::StmtVisitor;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
 use crate::value::Value;
@@ -17,15 +21,14 @@ impl Interpreter {
         println!("Runtime error at {}", message);
         std::process::exit(1);
     }
-}
-
-impl Interpreter {
-    pub fn interpret(&mut self, ast: &dyn Expression<Value>) -> Value {
-        ast.accept(self)
+    pub fn interpret(&mut self, stmts: Vec<Statement>) {
+        for statement in stmts {
+            statement.accept(self);
+        }
     }
 }
 
-impl Visitor<Value> for Interpreter {
+impl ExprVisitor<Value> for Interpreter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         literal.value.clone()
     }
@@ -105,7 +108,9 @@ impl Visitor<Value> for Interpreter {
                         {
                             let mut matrix = m.clone();
                             matrix.scale(s.data);
-                            Value { data: ValueType::MATRIX(matrix) }
+                            Value {
+                                data: ValueType::MATRIX(matrix),
+                            }
                         } else {
                             self.runtime_error("Invalid operand");
                             Value::new_scalar(0.0)
@@ -114,14 +119,17 @@ impl Visitor<Value> for Interpreter {
                 } else {
                     if let Value {
                         data: ValueType::MATRIX(m),
-                    } = left {
+                    } = left
+                    {
                         if let Value {
                             data: ValueType::SCALAR(s2),
                         } = right
                         {
                             let mut matrix = m.clone();
                             matrix.scale(s2.data);
-                            Value { data: ValueType::MATRIX(matrix) }
+                            Value {
+                                data: ValueType::MATRIX(matrix),
+                            }
                         } else {
                             self.runtime_error("Invalid operand");
                             Value::new_scalar(0.0)
@@ -164,5 +172,19 @@ impl Visitor<Value> for Interpreter {
 
     fn visit_grouping(&mut self, grouping: &crate::ast::expression::Grouping) -> Value {
         grouping.expression.accept(self)
+    }
+}
+
+impl StmtVisitor for Interpreter {
+    fn visit_expression_statement(
+        &mut self,
+        statement: &crate::ast::statement::ExpressionStatement,
+    ) {
+        statement.expression.accept(self);
+    }
+
+    fn visit_print_statement(&mut self, statement: &crate::ast::statement::PrintStatement) {
+        let value = statement.expression.accept(self);
+        value.print();
     }
 }

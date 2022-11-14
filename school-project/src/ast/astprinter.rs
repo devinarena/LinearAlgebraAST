@@ -2,7 +2,7 @@ use crate::ast::expression::Binary;
 use crate::ast::expression::Unary;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
-use crate::ast::expression::Visitor;
+use crate::ast::expression::ExprVisitor;
 use crate::value::Value;
 use crate::value::ValueType;
 
@@ -16,7 +16,7 @@ impl ASTPrinter {
     }
 }
 
-impl Visitor<Value> for ASTPrinter {
+impl ExprVisitor<Value> for ASTPrinter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         let value: &Value = &literal.value;
         value.print();

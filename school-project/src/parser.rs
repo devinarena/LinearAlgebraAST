@@ -5,6 +5,7 @@ use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
 use crate::ast::statement::ExpressionStatement;
+use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
@@ -187,6 +188,18 @@ impl Parser {
         self.equality()
     }
 
+    fn print_statement(&mut self) -> Statement {
+        let value = self.expression();
+        match self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
+            Ok(_) => Statement::Print {
+                0: PrintStatement::new(value),
+            },
+            Err(e) => {
+                panic!("{}", e);
+            }
+        }
+    }
+
     fn expression_statement(&mut self) -> Statement {
         let estmt = Statement::Expression {
             0: ExpressionStatement::new(self.expression()),
@@ -199,11 +212,15 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Statement {
+        if self.match_token(TokenType::TOKEN_PRINT) {
+            return self.print_statement();
+        }
+
         self.expression_statement()
     }
 
     pub fn parse(&mut self) -> Result<Vec<Statement>, String> {
-        let mut statements = Vec::new();
+        let mut statements: Vec<Statement> = Vec::new();
         while !self.is_at_end() {
             statements.push(self.statement());
         }
