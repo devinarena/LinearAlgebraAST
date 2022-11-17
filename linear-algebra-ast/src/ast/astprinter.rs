@@ -4,7 +4,6 @@ use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::ExprVisitor;
 use crate::value::Value;
-use crate::value::ValueType;
 
 pub struct ASTPrinter {}
 impl ASTPrinter {
