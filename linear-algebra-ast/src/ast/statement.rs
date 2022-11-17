@@ -1,10 +1,12 @@
 
+use crate::tokens::Token;
 use crate::value::Value;
 use crate::ast::expression::Expression;
 
 pub trait StmtVisitor {
     fn visit_expression_statement(&mut self, statement: &ExpressionStatement);
     fn visit_print_statement(&mut self, statement: &PrintStatement);
+    fn visit_let_statement(&mut self, statement: &LetStatement);
 }
 
 pub trait StatementType {
@@ -39,9 +41,25 @@ impl StatementType for PrintStatement {
     }
 }
 
+pub struct LetStatement {
+    pub name: Token,
+    pub initializer: Box<dyn Expression<Value>>,
+}
+impl LetStatement {
+    pub fn new(name: Token, initializer: Box<dyn Expression<Value>>) -> Self {
+        LetStatement { name, initializer }
+    }
+}
+impl StatementType for LetStatement {
+    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+        visitor.visit_let_statement(self)
+    }
+}
+
 pub enum Statement {
     Expression(ExpressionStatement),
     Print(PrintStatement),
+    Let(LetStatement),
 }
 
 impl StatementType for Statement {
@@ -49,6 +67,7 @@ impl StatementType for Statement {
         match self {
             Statement::Expression(statement) => statement.accept(visitor),
             Statement::Print(statement) => statement.accept(visitor),
+            Statement::Let(statement) => statement.accept(visitor),
         }
     }
 }

@@ -3,6 +3,7 @@ mod lexer;
 mod parser;
 mod tokens;
 mod value;
+mod environment;
 mod ast {
     pub mod astprinter;
     pub mod expression;

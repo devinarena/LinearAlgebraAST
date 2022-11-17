@@ -45,7 +45,7 @@ impl Lexer {
         }
         let lexeme: String = self.content[start..i].to_string();
         match lexeme.as_bytes() {
-            // "let" => tokens.push(Token::new(TokenType::TOKEN_LET, lexeme, line)),
+            b"let" => tokens.push(Token::new(TokenType::TOKEN_LET, lexeme, line)),
             b"print" => tokens.push(Token::new(TokenType::TOKEN_PRINT, lexeme, line)),
             _ => tokens.push(Token::new(TokenType::TOKEN_IDENTIFIER, lexeme, line)),
         }

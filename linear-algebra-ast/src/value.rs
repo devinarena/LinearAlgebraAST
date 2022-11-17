@@ -1,4 +1,3 @@
-
 #[derive(Clone)]
 pub enum ValueType {
     SCALAR(Scalar),
@@ -9,7 +8,7 @@ pub enum ValueType {
 pub struct Matrix {
     pub data: Vec<f64>,
     pub rows: usize,
-    pub cols: usize
+    pub cols: usize,
 }
 impl Matrix {
     pub fn scale(&mut self, scalar: f64) {
@@ -21,7 +20,7 @@ impl Matrix {
 
 #[derive(Clone)]
 pub struct Scalar {
-    pub data: f64
+    pub data: f64,
 }
 
 #[derive(Clone)]
@@ -38,7 +37,11 @@ impl Value {
 
     pub fn new_matrix(matrix: Vec<f64>, rows: usize, cols: usize) -> Self {
         Value {
-            data: ValueType::MATRIX(Matrix { data: matrix, rows, cols }),
+            data: ValueType::MATRIX(Matrix {
+                data: matrix,
+                rows,
+                cols,
+            }),
         }
     }
 

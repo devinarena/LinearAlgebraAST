@@ -1,8 +1,10 @@
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
+use crate::ast::expression::Identifier;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
 use crate::ast::statement::ExpressionStatement;
+use crate::ast::statement::LetStatement;
 use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::tokens::Token;
@@ -156,6 +158,10 @@ impl Parser {
                 }
                 return expr;
             }
+            TokenType::TOKEN_IDENTIFIER => {
+                let identifier = token.lexeme.clone();
+                return Box::new(Identifier::new(identifier));
+            }
             _ => {
                 self.parse_error("Unexpected token".to_string());
                 return Box::new(Literal::new(Value::new_scalar(0.0)));
@@ -250,9 +256,32 @@ impl Parser {
         estmt
     }
 
+    fn let_statement(&mut self) -> Statement {
+        let mut name = Token::new(TokenType::TOKEN_IDENTIFIER, "".to_string(), 0);
+        if self.consume(TokenType::TOKEN_IDENTIFIER, "Expected identifier") {
+            name = self.previous().clone();
+        }
+        if self.consume(TokenType::TOKEN_EQUAL, "Expected '=' after identifier") {
+            let value = self.expression();
+            if self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
+                return Statement::Let(LetStatement::new(name, value));
+            } else {
+                return Statement::Expression(ExpressionStatement::new(Box::new(Literal::new(
+                    Value::new_scalar(0.0),
+                ))));
+            }
+        } else {
+            return Statement::Expression(ExpressionStatement::new(Box::new(Literal::new(
+                Value::new_scalar(0.0),
+            ))));
+        }
+    }
+
     fn statement(&mut self) -> Statement {
         if self.match_token(TokenType::TOKEN_PRINT) {
             return self.print_statement();
+        } else if (self.match_token(TokenType::TOKEN_LET)) {
+            return self.let_statement();
         }
 
         self.expression_statement()

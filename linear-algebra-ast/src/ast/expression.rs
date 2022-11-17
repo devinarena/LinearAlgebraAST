@@ -1,11 +1,12 @@
-use crate::value::Value;
 use crate::tokens::Token;
+use crate::value::Value;
 
 pub trait ExprVisitor<T> {
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
     fn visit_grouping(&mut self, grouping: &Grouping) -> T;
+    fn visit_identifier(&mut self, identifier: &Identifier) -> T;
 }
 
 pub trait Expression<T> {
@@ -42,7 +43,7 @@ impl Expression<Value> for Unary {
 
 pub struct Binary {
     pub left: Box<dyn Expression<Value>>,
-    pub operator:  Token,
+    pub operator: Token,
     pub right: Box<dyn Expression<Value>>,
 }
 impl Binary {
@@ -75,5 +76,20 @@ impl Grouping {
 impl Expression<Value> for Grouping {
     fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
         self.expression.accept(visitor)
+    }
+}
+
+
+pub struct Identifier {
+    pub name: String,
+}
+impl Identifier {
+    pub fn new(name: String) -> Self {
+        Identifier { name }
+    }
+}
+impl Expression<Value> for Identifier {
+    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
+        visitor.visit_identifier(self)
     }
 }

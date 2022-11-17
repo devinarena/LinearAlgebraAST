@@ -1,8 +1,8 @@
 use crate::ast::expression::Binary;
-use crate::ast::expression::Unary;
+use crate::ast::expression::ExprVisitor;
 use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
-use crate::ast::expression::ExprVisitor;
+use crate::ast::expression::Unary;
 use crate::value::Value;
 
 pub struct ASTPrinter {}
@@ -16,6 +16,10 @@ impl ASTPrinter {
 }
 
 impl ExprVisitor<Value> for ASTPrinter {
+    fn visit_identifier(&mut self, identifier: &super::expression::Identifier) -> Value {
+        Value::new_scalar(0.0)
+    }
+
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         let value: &Value = &literal.value;
         value.print();
