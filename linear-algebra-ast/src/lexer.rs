@@ -47,6 +47,7 @@ impl Lexer {
         match lexeme.as_bytes() {
             b"let" => tokens.push(Token::new(TokenType::TOKEN_LET, lexeme, line)),
             b"print" => tokens.push(Token::new(TokenType::TOKEN_PRINT, lexeme, line)),
+            b"newline" => tokens.push(Token::new(TokenType::TOKEN_NEWLINE, lexeme, line)),
             _ => tokens.push(Token::new(TokenType::TOKEN_IDENTIFIER, lexeme, line)),
         }
         i

@@ -5,6 +5,7 @@ use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
 use crate::ast::statement::ExpressionStatement;
 use crate::ast::statement::LetStatement;
+use crate::ast::statement::NewLineStatement;
 use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::tokens::Token;
@@ -277,11 +278,26 @@ impl Parser {
         }
     }
 
+    fn new_line_statement(&mut self) -> Statement {
+        let mut lines: usize = 1;
+        if self.match_token(TokenType::TOKEN_NUMBER) {
+            let token = self.previous();
+            match token.lexeme.parse::<usize>() {
+                Ok(n) => lines = n,
+                Err(_) => self.parse_error("Expected number after newline".to_string()),
+            }
+        }
+        self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after newline");
+        Statement::NewLine(NewLineStatement::new(lines))
+    }
+
     fn statement(&mut self) -> Statement {
         if self.match_token(TokenType::TOKEN_PRINT) {
             return self.print_statement();
-        } else if (self.match_token(TokenType::TOKEN_LET)) {
+        } else if self.match_token(TokenType::TOKEN_LET) {
             return self.let_statement();
+        } else if self.match_token(TokenType::TOKEN_NEWLINE) {
+            return self.new_line_statement();
         }
 
         self.expression_statement()

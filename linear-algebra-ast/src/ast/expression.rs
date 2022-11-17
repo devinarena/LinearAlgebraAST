@@ -69,9 +69,9 @@ pub struct Grouping {
     pub expression: Box<dyn Expression<Value>>,
 }
 impl Grouping {
-    pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
-        Grouping { expression }
-    }
+    // pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
+    //     Grouping { expression }
+    // }
 }
 impl Expression<Value> for Grouping {
     fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {

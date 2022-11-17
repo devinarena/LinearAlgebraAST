@@ -1,6 +1,6 @@
 use crate::ast::expression::Binary;
 use crate::ast::expression::ExprVisitor;
-use crate::ast::expression::Expression;
+// use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
 use crate::value::Value;
@@ -10,13 +10,13 @@ impl ASTPrinter {
     pub fn new() -> Self {
         ASTPrinter {}
     }
-    pub fn print(&mut self, expression: &dyn Expression<Value>) -> Value {
-        expression.accept(self)
-    }
+    // pub fn print(&mut self, expression: &dyn Expression<Value>) -> Value {
+    //     expression.accept(self)
+    // }
 }
 
 impl ExprVisitor<Value> for ASTPrinter {
-    fn visit_identifier(&mut self, identifier: &super::expression::Identifier) -> Value {
+    fn visit_identifier(&mut self, _identifier: &super::expression::Identifier) -> Value {
         Value::new_scalar(0.0)
     }
 

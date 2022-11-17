@@ -236,4 +236,10 @@ impl StmtVisitor for Interpreter {
         self.globals
             .define(statement.name.lexeme.to_string(), value);
     }
+
+    fn visit_new_line_statement(&mut self, statement: &crate::ast::statement::NewLineStatement) {
+        for _ in 0..statement.lines {
+            println!();
+        }
+    }
 }

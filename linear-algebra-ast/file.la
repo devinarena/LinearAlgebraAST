@@ -2,4 +2,12 @@
 let A = [1 0 0|0 1 0|0 0 1];
 let b = 2.5;
 
+let C = [1 2 3|4 5 6|7 8 9];
+
 print A * b;
+newline;
+print A * C;
+newline;
+print b * C;
+newline 3;
+print b * A * C;

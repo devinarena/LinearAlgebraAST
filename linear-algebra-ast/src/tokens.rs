@@ -53,5 +53,6 @@ pub enum TokenType {
     TOKEN_PIPE,
     TOKEN_IDENTIFIER,
     TOKEN_PRINT,
+    TOKEN_NEWLINE,
     TOKEN_LET
 }
