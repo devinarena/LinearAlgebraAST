@@ -1,11 +1,17 @@
 use crate::ast::astprinter::ASTPrinter;
 use crate::ast::expression::Binary;
-use crate::ast::expression::ExprVisitor;
+use crate::ast::expression::ExpressionVisitor;
+use crate::ast::expression::Grouping;
 use crate::ast::expression::Identifier;
 use crate::ast::expression::Literal;
+use crate::ast::expression::Unary;
+use crate::ast::statement::ExpressionStatement;
+use crate::ast::statement::LetStatement;
+use crate::ast::statement::NewLineStatement;
+use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::ast::statement::StatementType;
-use crate::ast::statement::StmtVisitor;
+use crate::ast::statement::StatementVisitor;
 use crate::environment::Environment;
 use crate::tokens::TokenType;
 use crate::value::Value;
@@ -29,12 +35,12 @@ impl Interpreter {
     }
     pub fn interpret(&mut self, stmts: Vec<Statement>) {
         for statement in stmts {
-            statement.accept(self);
+            statement.visit(self);
         }
     }
 }
 
-impl ExprVisitor<Value> for Interpreter {
+impl ExpressionVisitor<Value> for Interpreter {
     fn visit_literal(&mut self, literal: &Literal) -> Value {
         literal.value.clone()
     }
@@ -50,13 +56,13 @@ impl ExprVisitor<Value> for Interpreter {
         }
     }
 
-    fn visit_unary(&mut self, unary: &crate::ast::expression::Unary) -> Value {
-        let right = unary.right.accept(self);
+    fn visit_unary(&mut self, unary: &Unary) -> Value {
+        let right = unary.right.visit(self);
         match unary.operator.token_type {
             TokenType::TOKEN_MINUS => match right.data {
                 ValueType::SCALAR(s) => Value::new_scalar(s.data * -1.0),
                 ValueType::MATRIX(_m) => {
-                    self.runtime_error("Cannot negate a matrix");
+                    self.runtime_error("Unary minus not supported for matrices.");
                     Value::new_scalar(0.0)
                 }
             },
@@ -67,8 +73,8 @@ impl ExprVisitor<Value> for Interpreter {
         }
     }
     fn visit_binary(&mut self, binary: &Binary) -> Value {
-        let left = binary.left.accept(self);
-        let right = binary.right.accept(self);
+        let left = binary.left.visit(self);
+        let right = binary.right.visit(self);
         match binary.operator.token_type {
             TokenType::TOKEN_PLUS => match left.data {
                 ValueType::SCALAR(s) => match right.data {
@@ -213,31 +219,28 @@ impl ExprVisitor<Value> for Interpreter {
         }
     }
 
-    fn visit_grouping(&mut self, grouping: &crate::ast::expression::Grouping) -> Value {
-        grouping.expression.accept(self)
+    fn visit_grouping(&mut self, grouping: &Grouping) -> Value {
+        grouping.expression.visit(self)
     }
 }
 
-impl StmtVisitor for Interpreter {
-    fn visit_expression_statement(
-        &mut self,
-        statement: &crate::ast::statement::ExpressionStatement,
-    ) {
-        statement.expression.accept(self);
+impl StatementVisitor for Interpreter {
+    fn visit_expression_statement(&mut self, statement: &ExpressionStatement) {
+        statement.expression.visit(self);
     }
 
-    fn visit_print_statement(&mut self, statement: &crate::ast::statement::PrintStatement) {
-        let value = statement.expression.accept(self);
+    fn visit_print_statement(&mut self, statement: &PrintStatement) {
+        let value = statement.expression.visit(self);
         value.print();
     }
 
-    fn visit_let_statement(&mut self, statement: &crate::ast::statement::LetStatement) {
-        let value = statement.initializer.accept(self);
+    fn visit_let_statement(&mut self, statement: &LetStatement) {
+        let value = statement.initializer.visit(self);
         self.globals
             .define(statement.name.lexeme.to_string(), value);
     }
 
-    fn visit_new_line_statement(&mut self, statement: &crate::ast::statement::NewLineStatement) {
+    fn visit_new_line_statement(&mut self, statement: &NewLineStatement) {
         for _ in 0..statement.lines {
             println!();
         }

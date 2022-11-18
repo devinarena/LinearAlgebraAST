@@ -1,5 +1,5 @@
 use crate::ast::expression::Binary;
-use crate::ast::expression::ExprVisitor;
+use crate::ast::expression::ExpressionVisitor;
 // use crate::ast::expression::Expression;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
@@ -15,7 +15,7 @@ impl ASTPrinter {
     // }
 }
 
-impl ExprVisitor<Value> for ASTPrinter {
+impl ExpressionVisitor<Value> for ASTPrinter {
     fn visit_identifier(&mut self, _identifier: &super::expression::Identifier) -> Value {
         Value::new_scalar(0.0)
     }
@@ -28,23 +28,23 @@ impl ExprVisitor<Value> for ASTPrinter {
 
     fn visit_unary(&mut self, unary: &Unary) -> Value {
         print!("({} ", unary.operator.lexeme);
-        let value = unary.right.accept(self);
+        let value = unary.right.visit(self);
         print!(")");
         value
     }
 
     fn visit_binary(&mut self, binary: &Binary) -> Value {
         print!("(");
-        let left = binary.left.accept(self);
+        let left = binary.left.visit(self);
         print!(" {} ", binary.operator.lexeme);
-        let _right = binary.right.accept(self);
+        let _right = binary.right.visit(self);
         print!(")");
         left
     }
 
     fn visit_grouping(&mut self, grouping: &super::expression::Grouping) -> Value {
         print!("(");
-        let value = grouping.expression.accept(self);
+        let value = grouping.expression.visit(self);
         print!(")");
         value
     }

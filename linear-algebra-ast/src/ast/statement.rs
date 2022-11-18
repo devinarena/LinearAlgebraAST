@@ -3,7 +3,7 @@ use crate::tokens::Token;
 use crate::value::Value;
 use crate::ast::expression::Expression;
 
-pub trait StmtVisitor {
+pub trait StatementVisitor {
     fn visit_expression_statement(&mut self, statement: &ExpressionStatement);
     fn visit_print_statement(&mut self, statement: &PrintStatement);
     fn visit_let_statement(&mut self, statement: &LetStatement);
@@ -11,7 +11,7 @@ pub trait StmtVisitor {
 }
 
 pub trait StatementType {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> ();
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> ();
 }
 
 pub struct ExpressionStatement {
@@ -23,7 +23,7 @@ impl ExpressionStatement {
     }
 }
 impl StatementType for ExpressionStatement {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> () {
         visitor.visit_expression_statement(self)
     }
 }
@@ -37,7 +37,7 @@ impl PrintStatement {
     }
 }
 impl StatementType for PrintStatement {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> () {
         visitor.visit_print_statement(self)
     }
 }
@@ -52,7 +52,7 @@ impl LetStatement {
     }
 }
 impl StatementType for LetStatement {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> () {
         visitor.visit_let_statement(self)
     }
 }
@@ -66,7 +66,7 @@ impl NewLineStatement {
     }
 }
 impl StatementType for NewLineStatement {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> () {
         visitor.visit_new_line_statement(self)
     }
 }
@@ -79,12 +79,12 @@ pub enum Statement {
 }
 
 impl StatementType for Statement {
-    fn accept(&self, visitor: &mut dyn StmtVisitor) -> () {
+    fn visit(&self, visitor: &mut dyn StatementVisitor) -> () {
         match self {
-            Statement::Expression(statement) => statement.accept(visitor),
-            Statement::Print(statement) => statement.accept(visitor),
-            Statement::Let(statement) => statement.accept(visitor),
-            Statement::NewLine(statement) => statement.accept(visitor)
+            Statement::Expression(statement) => statement.visit(visitor),
+            Statement::Print(statement) => statement.visit(visitor),
+            Statement::Let(statement) => statement.visit(visitor),
+            Statement::NewLine(statement) => statement.visit(visitor)
         }
     }
 }

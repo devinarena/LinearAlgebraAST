@@ -1,7 +1,7 @@
 use crate::tokens::Token;
 use crate::value::Value;
 
-pub trait ExprVisitor<T> {
+pub trait ExpressionVisitor<T> {
     fn visit_literal(&mut self, literal: &Literal) -> T;
     fn visit_unary(&mut self, unary: &Unary) -> T;
     fn visit_binary(&mut self, binary: &Binary) -> T;
@@ -10,7 +10,7 @@ pub trait ExprVisitor<T> {
 }
 
 pub trait Expression<T> {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<T>) -> T;
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<T>) -> T;
 }
 pub struct Literal {
     pub value: Value,
@@ -21,7 +21,7 @@ impl Literal {
     }
 }
 impl Expression<Value> for Literal {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_literal(self)
     }
 }
@@ -36,7 +36,7 @@ impl Unary {
     }
 }
 impl Expression<Value> for Unary {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_unary(self)
     }
 }
@@ -60,7 +60,7 @@ impl Binary {
     }
 }
 impl Expression<Value> for Binary {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_binary(self)
     }
 }
@@ -74,8 +74,8 @@ impl Grouping {
     // }
 }
 impl Expression<Value> for Grouping {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
-        self.expression.accept(visitor)
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
+        self.expression.visit(visitor)
     }
 }
 
@@ -89,7 +89,7 @@ impl Identifier {
     }
 }
 impl Expression<Value> for Identifier {
-    fn accept(&self, visitor: &mut dyn ExprVisitor<Value>) -> Value {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_identifier(self)
     }
 }
