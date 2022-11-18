@@ -1,6 +1,6 @@
-# Linear Algebra AST Walker
+# Linear Algebra AST
 ## What is it?
-Linear Algebra AST Walker is a simple AST walker interpreter that handles parsing of simple expressions.
+Linear Algebra AST is a simple AST interpreter that handles parsing of simple expressions.
 
 ## Features
 Current and planned(tbd) features include:
