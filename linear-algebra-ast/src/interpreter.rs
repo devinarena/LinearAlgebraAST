@@ -61,11 +61,23 @@ impl ExpressionVisitor<Value> for Interpreter {
         match unary.operator.token_type {
             TokenType::TOKEN_MINUS => match right.data {
                 ValueType::SCALAR(s) => Value::new_scalar(s.data * -1.0),
-                ValueType::MATRIX(_m) => {
-                    self.runtime_error("Unary minus not supported for matrices.");
-                    Value::new_scalar(0.0)
+                ValueType::MATRIX(m) => {
+                    let mut new_matrix = m.clone();
+                    new_matrix.scale(-1.0);
+                    Value::wrap_matrix(new_matrix)
                 }
             },
+            TokenType::TOKEN_TRANSPOSE => match right.data {
+                ValueType::SCALAR(_) => {
+                    self.runtime_error("Cannot transpose a scalar.");
+                    Value::new_scalar(0.0)
+                }
+                ValueType::MATRIX(m) => {
+                    let mut new_matrix = m.clone();
+                    new_matrix.transpose();
+                    Value::wrap_matrix(new_matrix)
+                },
+            }
             _ => {
                 self.runtime_error("Invalid unary operator");
                 Value::new_scalar(0.0)
@@ -236,14 +248,15 @@ impl ExpressionVisitor<Value> for Interpreter {
                         }
                         let power: u32 = s.data as u32;
                         let mut new_matrix = m.clone();
-                        for _ in 0..power-1 {
+                        for _ in 0..power - 1 {
                             // multiply repeatedly
                             let mut new_matrix2 = vec![0.0; m.rows * m.cols];
                             for i in 0..m.rows {
                                 for j in 0..m.cols {
                                     for k in 0..m.cols {
-                                        new_matrix2[i * m.cols + j] +=
-                                            new_matrix.data[i * m.cols + k] * m.data[k * m.cols + j];
+                                        new_matrix2[i * m.cols + j] += new_matrix.data
+                                            [i * m.cols + k]
+                                            * m.data[k * m.cols + j];
                                     }
                                 }
                             }

@@ -181,11 +181,27 @@ impl Parser {
         self.literal()
     }
 
-    fn factor(&mut self) -> Box<dyn Expression<Value>> {
+    fn exponentiation(&mut self) -> Box<dyn Expression<Value>> {
         let mut expr = self.unary();
 
-        while self.match_token(TokenType::TOKEN_CARET)
-            || self.match_token(TokenType::TOKEN_STAR)
+        while self.match_token(TokenType::TOKEN_TRANSPOSE) {
+            let operator = self.previous().clone();
+            expr = Box::new(Unary::new(operator, expr));
+        }
+
+        while self.match_token(TokenType::TOKEN_CARET) {
+            let operator = self.previous().clone();
+            let right = self.unary();
+            expr = Box::new(Binary::new(expr, operator, right));
+        }
+
+        expr
+    }
+
+    fn factor(&mut self) -> Box<dyn Expression<Value>> {
+        let mut expr = self.exponentiation();
+
+        while self.match_token(TokenType::TOKEN_STAR)
             || self.match_token(TokenType::TOKEN_SLASH)
         {
             let operator = self.previous().clone();

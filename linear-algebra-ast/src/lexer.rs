@@ -61,7 +61,7 @@ impl Lexer {
 
     pub fn new_empty() -> Self {
         Lexer {
-            content: "".to_string()
+            content: "".to_string(),
         }
     }
 
@@ -82,7 +82,20 @@ impl Lexer {
                 '-' => tokens.push(Token::new(TokenType::TOKEN_MINUS, c.to_string(), line)),
                 '*' => tokens.push(Token::new(TokenType::TOKEN_STAR, c.to_string(), line)),
                 '/' => tokens.push(Token::new(TokenType::TOKEN_SLASH, c.to_string(), line)),
-                '^' => tokens.push(Token::new(TokenType::TOKEN_CARET, c.to_string(), line)),
+                '^' => {
+                    if index < self.content.len() - 1
+                        && self.content.chars().nth(index + 1).unwrap() == 'T'
+                    {
+                        tokens.push(Token::new(
+                            TokenType::TOKEN_TRANSPOSE,
+                            c.to_string() + &c.to_string(),
+                            line,
+                        ));
+                        index += 1;
+                    } else {
+                        tokens.push(Token::new(TokenType::TOKEN_CARET, c.to_string(), line));
+                    }
+                }
                 '=' => {
                     if self.content.chars().nth(index + 1).unwrap() == '=' {
                         tokens.push(Token::new(

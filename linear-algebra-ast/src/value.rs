@@ -11,11 +11,24 @@ pub struct Matrix {
     pub cols: usize,
 }
 impl Matrix {
-    // pub fn scale(&mut self, scalar: f64) {
-    //     for i in 0..self.data.len() {
-    //         self.data[i] *= scalar;
-    //     }
-    // }
+    pub fn scale(&mut self, scalar: f64) {
+        for i in 0..self.data.len() {
+            self.data[i] *= scalar;
+        }
+    }
+
+    pub fn transpose(&mut self) {
+        let mut new_data = Vec::new();
+        for i in 0..self.cols {
+            for j in 0..self.rows {
+                new_data.push(self.data[j * self.cols + i]);
+            }
+        }
+        self.data = new_data;
+        let temp = self.rows;
+        self.rows = self.cols;
+        self.cols = temp;
+    }
 }
 
 #[derive(Clone)]
@@ -42,6 +55,12 @@ impl Value {
                 rows,
                 cols,
             }),
+        }
+    }
+
+    pub fn wrap_matrix(matrix: Matrix) -> Self {
+        Value {
+            data: ValueType::MATRIX(matrix),
         }
     }
 
