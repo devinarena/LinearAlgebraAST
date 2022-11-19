@@ -82,6 +82,7 @@ impl Lexer {
                 '-' => tokens.push(Token::new(TokenType::TOKEN_MINUS, c.to_string(), line)),
                 '*' => tokens.push(Token::new(TokenType::TOKEN_STAR, c.to_string(), line)),
                 '/' => tokens.push(Token::new(TokenType::TOKEN_SLASH, c.to_string(), line)),
+                '^' => tokens.push(Token::new(TokenType::TOKEN_CARET, c.to_string(), line)),
                 '=' => {
                     if self.content.chars().nth(index + 1).unwrap() == '=' {
                         tokens.push(Token::new(
