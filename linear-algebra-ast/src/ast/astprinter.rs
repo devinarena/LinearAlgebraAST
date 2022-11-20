@@ -1,6 +1,6 @@
 use crate::ast::expression::Binary;
 use crate::ast::expression::ExpressionVisitor;
-// use crate::ast::expression::Expression;
+use crate::ast::expression::ExpressionType;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
 use crate::value::Value;

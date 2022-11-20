@@ -1,7 +1,7 @@
 
 use crate::tokens::Token;
 use crate::value::Value;
-use crate::ast::expression::Expression;
+use crate::ast::expression::ExpressionType;
 
 pub trait StatementVisitor {
     fn visit_expression_statement(&mut self, statement: &ExpressionStatement);
@@ -15,10 +15,10 @@ pub trait StatementType {
 }
 
 pub struct ExpressionStatement {
-    pub expression: Box<dyn Expression<Value>>,
+    pub expression: Box<dyn ExpressionType<Value>>,
 }
 impl ExpressionStatement {
-    pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
+    pub fn new(expression: Box<dyn ExpressionType<Value>>) -> Self {
         ExpressionStatement { expression }
     }
 }
@@ -29,10 +29,10 @@ impl StatementType for ExpressionStatement {
 }
 
 pub struct PrintStatement {
-    pub expression: Box<dyn Expression<Value>>,
+    pub expression: Box<dyn ExpressionType<Value>>,
 }
 impl PrintStatement {
-    pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
+    pub fn new(expression: Box<dyn ExpressionType<Value>>) -> Self {
         PrintStatement { expression }
     }
 }
@@ -44,10 +44,10 @@ impl StatementType for PrintStatement {
 
 pub struct LetStatement {
     pub name: Token,
-    pub initializer: Box<dyn Expression<Value>>,
+    pub initializer: Box<dyn ExpressionType<Value>>,
 }
 impl LetStatement {
-    pub fn new(name: Token, initializer: Box<dyn Expression<Value>>) -> Self {
+    pub fn new(name: Token, initializer: Box<dyn ExpressionType<Value>>) -> Self {
         LetStatement { name, initializer }
     }
 }

@@ -9,7 +9,7 @@ pub trait ExpressionVisitor<T> {
     fn visit_identifier(&mut self, identifier: &Identifier) -> T;
 }
 
-pub trait Expression<T> {
+pub trait ExpressionType<T> {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<T>) -> T;
 }
 pub struct Literal {
@@ -20,7 +20,7 @@ impl Literal {
         Literal { value }
     }
 }
-impl Expression<Value> for Literal {
+impl ExpressionType<Value> for Literal {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_literal(self)
     }
@@ -28,29 +28,29 @@ impl Expression<Value> for Literal {
 
 pub struct Unary {
     pub operator: Token,
-    pub right: Box<dyn Expression<Value>>,
+    pub right: Box<Expression>,
 }
 impl Unary {
-    pub fn new(operator: Token, right: Box<dyn Expression<Value>>) -> Self {
+    pub fn new(operator: Token, right: Box<Expression>) -> Self {
         Unary { operator, right }
     }
 }
-impl Expression<Value> for Unary {
+impl ExpressionType<Value> for Unary {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_unary(self)
     }
 }
 
 pub struct Binary {
-    pub left: Box<dyn Expression<Value>>,
+    pub left: Box<Expression>,
     pub operator: Token,
-    pub right: Box<dyn Expression<Value>>,
+    pub right: Box<Expression>,
 }
 impl Binary {
     pub fn new(
-        left: Box<dyn Expression<Value>>,
+        left: Box<Expression>,
         operator: Token,
-        right: Box<dyn Expression<Value>>,
+        right: Box<Expression>,
     ) -> Self {
         Binary {
             left,
@@ -59,21 +59,21 @@ impl Binary {
         }
     }
 }
-impl Expression<Value> for Binary {
+impl ExpressionType<Value> for Binary {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_binary(self)
     }
 }
 
 pub struct Grouping {
-    pub expression: Box<dyn Expression<Value>>,
+    pub expression: Box<Expression>,
 }
 impl Grouping {
     // pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
     //     Grouping { expression }
     // }
 }
-impl Expression<Value> for Grouping {
+impl ExpressionType<Value> for Grouping {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         self.expression.visit(visitor)
     }
@@ -88,8 +88,27 @@ impl Identifier {
         Identifier { name }
     }
 }
-impl Expression<Value> for Identifier {
+impl ExpressionType<Value> for Identifier {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
         visitor.visit_identifier(self)
+    }
+}
+
+pub enum Expression {
+    Literal(Literal),
+    Unary(Unary),
+    Binary(Binary),
+    Grouping(Grouping),
+    Identifier(Identifier),
+}
+impl<T> ExpressionType<T> for Expression {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<T>) -> T {
+        match self {
+            Expression::Literal(literal) => visitor.visit_literal(literal),
+            Expression::Unary(unary) => visitor.visit_unary(unary),
+            Expression::Binary(binary) => visitor.visit_binary(binary),
+            Expression::Grouping(grouping) => visitor.visit_grouping(grouping),
+            Expression::Identifier(identifier) => visitor.visit_identifier(identifier),
+        }
     }
 }

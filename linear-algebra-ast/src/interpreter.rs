@@ -1,5 +1,6 @@
 use crate::ast::astprinter::ASTPrinter;
 use crate::ast::expression::Binary;
+use crate::ast::expression::ExpressionType;
 use crate::ast::expression::ExpressionVisitor;
 use crate::ast::expression::Grouping;
 use crate::ast::expression::Identifier;
@@ -76,8 +77,8 @@ impl ExpressionVisitor<Value> for Interpreter {
                     let mut new_matrix = m.clone();
                     new_matrix.transpose();
                     Value::wrap_matrix(new_matrix)
-                },
-            }
+                }
+            },
             _ => {
                 self.runtime_error("Invalid unary operator");
                 Value::new_scalar(0.0)

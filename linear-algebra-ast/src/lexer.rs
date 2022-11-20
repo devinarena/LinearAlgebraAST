@@ -48,6 +48,9 @@ impl Lexer {
             b"let" => tokens.push(Token::new(TokenType::TOKEN_LET, lexeme, line)),
             b"print" => tokens.push(Token::new(TokenType::TOKEN_PRINT, lexeme, line)),
             b"newline" => tokens.push(Token::new(TokenType::TOKEN_NEWLINE, lexeme, line)),
+            b"identity" => tokens.push(Token::new(TokenType::TOKEN_IDENTITY, lexeme, line)),
+            b"iden" => tokens.push(Token::new(TokenType::TOKEN_IDENTITY, lexeme, line)),
+            b"ref" => tokens.push(Token::new(TokenType::TOKEN_REF, lexeme, line)),
             _ => tokens.push(Token::new(TokenType::TOKEN_IDENTIFIER, lexeme, line)),
         }
         i

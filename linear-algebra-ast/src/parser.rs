@@ -40,7 +40,7 @@ impl Parser {
         self.current = 0;
     }
 
-    pub fn parse_error(&mut self, content: String) {
+    pub fn parse_error(&mut self, content: &str) {
         let token = self.tokens.get(self.current).unwrap();
         let line = token.line;
         self.error = true;
@@ -87,7 +87,7 @@ impl Parser {
             self.advance();
             return true;
         }
-        self.parse_error(message.to_string());
+        self.parse_error(message);
         return false;
     }
 
@@ -109,7 +109,7 @@ impl Parser {
         }
     }
 
-    fn matrix(&mut self) -> Box<dyn Expression<Value>> {
+    fn matrix(&mut self) -> Expression {
         let mut matrix: Vec<f64> = Vec::new();
         let mut rows: usize = 1;
         let mut cols: usize = 0;
@@ -118,7 +118,7 @@ impl Parser {
                 if cols == 0 {
                     cols = matrix.len();
                 } else if matrix.len() % cols != 0 {
-                    self.parse_error("Invalid matrix dimensions".to_string());
+                    self.parse_error("Invalid matrix dimensions");
                 }
                 rows += 1;
                 self.advance();
@@ -131,16 +131,16 @@ impl Parser {
         if cols == 0 {
             cols = matrix.len();
         } else if matrix.len() % cols != 0 {
-            self.parse_error("Invalid matrix dimensions".to_string());
+            self.parse_error("Invalid matrix dimensions");
         }
         if self.consume(TokenType::TOKEN_RIGHT_BRACKET, "Expected ']' after matrix") {
-            return Box::new(Literal::new(Value::new_matrix(matrix, rows, cols)));
+            return Expression::Literal(Literal::new(Value::new_matrix(matrix, rows, cols)));
         } else {
-            return Box::new(Literal::new(Value::new_scalar(0.0)));
+            return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
         }
     }
 
-    fn literal(&mut self) -> Box<dyn Expression<Value>> {
+    fn literal(&mut self) -> Expression {
         self.advance();
         let token = self.previous();
         let value = match token.token_type {
@@ -155,74 +155,123 @@ impl Parser {
                     TokenType::TOKEN_RIGHT_PAREN,
                     "Expected ')' after expression",
                 ) {
-                    return Box::new(Literal::new(Value::new_scalar(0.0)));
+                    return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
                 }
                 return expr;
             }
             TokenType::TOKEN_IDENTIFIER => {
                 let identifier = token.lexeme.clone();
-                return Box::new(Identifier::new(identifier));
+                return Expression::Identifier(Identifier::new(identifier));
+            }
+            TokenType::TOKEN_IDENTITY => {
+                self.consume(
+                    TokenType::TOKEN_LEFT_PAREN,
+                    "Expect '(' following identity keyword",
+                );
+                self.consume(
+                    TokenType::TOKEN_NUMBER,
+                    "Expect size of identity as (n) where n is a positive integer.",
+                );
+                let rows = self.previous().lexeme.parse::<f64>().unwrap();
+                if rows < 0.0 {
+                    self.parse_error("Identity cannot be negative sized");
+                    return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
+                }
+                if rows < 1.0 && self.match_token(TokenType::TOKEN_RIGHT_PAREN) {
+                    return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
+                }
+                if rows >= 1.0 && rows == (rows as u32) as f64 {
+                    let mut entries = Vec::new();
+                    for i in 0..(rows as u32) {
+                        for j in 0..(rows as u32) {
+                            entries.push(((i == j) as u32) as f64);
+                        }
+                    }
+                    self.consume(
+                        TokenType::TOKEN_RIGHT_PAREN,
+                        "Expect ')' to close identity matrix dimensions.",
+                    );
+                    return Expression::Literal(Literal::new(Value::new_matrix(
+                        entries,
+                        rows as usize,
+                        rows as usize,
+                    )));
+                } else {
+                    self.parse_error(
+                        "Identity should be of size (n) where n is a positive integer.",
+                    );
+                    return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
+                }
+            }
+            TokenType::TOKEN_REF => {
+                self.consume(
+                    TokenType::TOKEN_LEFT_PAREN,
+                    "Expect '(' following REF keyword",
+                );
+                let expr = self.expression();
+                self.consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' to close REF");
+                match expr {
+                    _ => todo!(),
+                }
             }
             _ => {
-                self.parse_error("Unexpected token".to_string());
-                return Box::new(Literal::new(Value::new_scalar(0.0)));
+                self.parse_error("Unexpected token");
+                return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
             }
         };
-        Box::new(Literal::new(value))
+        Expression::Literal(Literal::new(value))
     }
 
-    fn unary(&mut self) -> Box<dyn Expression<Value>> {
+    fn unary(&mut self) -> Expression {
         if self.match_token(TokenType::TOKEN_MINUS) {
             let operator = self.previous().clone();
             let right = self.unary();
-            return Box::new(Unary::new(operator, right));
+            return Expression::Unary(Unary::new(operator, Box::new(right)));
         }
 
         self.literal()
     }
 
-    fn exponentiation(&mut self) -> Box<dyn Expression<Value>> {
+    fn exponentiation(&mut self) -> Expression {
         let mut expr = self.unary();
 
         while self.match_token(TokenType::TOKEN_TRANSPOSE) {
             let operator = self.previous().clone();
-            expr = Box::new(Unary::new(operator, expr));
+            expr = Expression::Unary(Unary::new(operator, Box::new(expr)));
         }
 
         while self.match_token(TokenType::TOKEN_CARET) {
             let operator = self.previous().clone();
             let right = self.unary();
-            expr = Box::new(Binary::new(expr, operator, right));
+            expr = Expression::Binary(Binary::new(Box::new(expr), operator, Box::new(right)));
         }
 
         expr
     }
 
-    fn factor(&mut self) -> Box<dyn Expression<Value>> {
+    fn factor(&mut self) -> Expression {
         let mut expr = self.exponentiation();
 
-        while self.match_token(TokenType::TOKEN_STAR)
-            || self.match_token(TokenType::TOKEN_SLASH)
-        {
+        while self.match_token(TokenType::TOKEN_STAR) || self.match_token(TokenType::TOKEN_SLASH) {
             let operator = self.previous().clone();
             let right = self.factor();
-            expr = Box::new(Binary::new(expr, operator, right));
+            expr = Expression::Binary(Binary::new(Box::new(expr), operator, Box::new(right)));
         }
         expr
     }
 
-    fn term(&mut self) -> Box<dyn Expression<Value>> {
+    fn term(&mut self) -> Expression {
         let mut expr = self.factor();
 
         while self.match_token(TokenType::TOKEN_PLUS) || self.match_token(TokenType::TOKEN_MINUS) {
             let operator = self.previous().clone();
             let right = self.factor();
-            expr = Box::new(Binary::new(expr, operator, right));
+            expr = Expression::Binary(Binary::new(Box::new(expr), operator, Box::new(right)));
         }
         expr
     }
 
-    fn comparison(&mut self) -> Box<dyn Expression<Value>> {
+    fn comparison(&mut self) -> Expression {
         let mut expr = self.term();
 
         while self.match_token(TokenType::TOKEN_GREATER)
@@ -232,32 +281,32 @@ impl Parser {
         {
             let operator = self.previous().clone();
             let right = self.term();
-            expr = Box::new(Binary::new(expr, operator, right));
+            expr = Expression::Binary(Binary::new(Box::new(expr), operator, Box::new(right)));
         }
 
         expr
     }
 
-    fn equality(&mut self) -> Box<dyn Expression<Value>> {
+    fn equality(&mut self) -> Expression {
         let mut expr = self.comparison();
         while self.match_token(TokenType::TOKEN_BANG_EQUAL)
             || self.match_token(TokenType::TOKEN_EQUAL_EQUAL)
         {
             let operator = self.previous().clone();
             let right = self.comparison();
-            expr = Box::new(Binary::new(expr, operator, right));
+            expr = Expression::Binary(Binary::new(Box::new(expr), operator, Box::new(right)));
         }
         expr
     }
 
-    fn expression(&mut self) -> Box<dyn Expression<Value>> {
+    fn expression(&mut self) -> Expression {
         self.equality()
     }
 
     fn print_statement(&mut self) -> Statement {
         let value = self.expression();
         if self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
-            return Statement::Print(PrintStatement::new(value));
+            return Statement::Print(PrintStatement::new(Box::new(value)));
         } else {
             return Statement::Expression(ExpressionStatement::new(Box::new(Literal::new(
                 Value::new_scalar(0.0),
@@ -267,7 +316,7 @@ impl Parser {
 
     fn expression_statement(&mut self) -> Statement {
         let estmt = Statement::Expression {
-            0: ExpressionStatement::new(self.expression()),
+            0: ExpressionStatement::new(Box::new(self.expression())),
         };
         self.consume(
             TokenType::TOKEN_SEMICOLON,
@@ -284,7 +333,7 @@ impl Parser {
         if self.consume(TokenType::TOKEN_EQUAL, "Expected '=' after identifier") {
             let value = self.expression();
             if self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after value") {
-                return Statement::Let(LetStatement::new(name, value));
+                return Statement::Let(LetStatement::new(name, Box::new(value)));
             } else {
                 return Statement::Expression(ExpressionStatement::new(Box::new(Literal::new(
                     Value::new_scalar(0.0),
@@ -303,7 +352,7 @@ impl Parser {
             let token = self.previous();
             match token.lexeme.parse::<usize>() {
                 Ok(n) => lines = n,
-                Err(_) => self.parse_error("Expected number after newline".to_string()),
+                Err(_) => self.parse_error("Expected number after newline"),
             }
         }
         self.consume(TokenType::TOKEN_SEMICOLON, "Expected ';' after newline");
