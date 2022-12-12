@@ -51,6 +51,9 @@ impl Lexer {
             b"identity" => tokens.push(Token::new(TokenType::TOKEN_IDENTITY, lexeme, line)),
             b"iden" => tokens.push(Token::new(TokenType::TOKEN_IDENTITY, lexeme, line)),
             b"ref" => tokens.push(Token::new(TokenType::TOKEN_REF, lexeme, line)),
+            b"rref" => tokens.push(Token::new(TokenType::TOKEN_RREF, lexeme, line)),
+            b"inverse" => tokens.push(Token::new(TokenType::TOKEN_INVERSE, lexeme, line)),
+            b"inv" => tokens.push(Token::new(TokenType::TOKEN_INVERSE, lexeme, line)),
             _ => tokens.push(Token::new(TokenType::TOKEN_IDENTIFIER, lexeme, line)),
         }
         i

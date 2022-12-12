@@ -69,9 +69,9 @@ pub struct Grouping {
     pub expression: Box<Expression>,
 }
 impl Grouping {
-    // pub fn new(expression: Box<dyn Expression<Value>>) -> Self {
-    //     Grouping { expression }
-    // }
+    pub fn new(expression: Box<Expression>) -> Self {
+        Grouping { expression }
+    }
 }
 impl ExpressionType<Value> for Grouping {
     fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
@@ -110,5 +110,10 @@ impl<T> ExpressionType<T> for Expression {
             Expression::Grouping(grouping) => visitor.visit_grouping(grouping),
             Expression::Identifier(identifier) => visitor.visit_identifier(identifier),
         }
+    }
+}
+impl<Value> ExpressionType<Value> for Box<Expression> {
+    fn visit(&self, visitor: &mut dyn ExpressionVisitor<Value>) -> Value {
+        self.as_ref().visit(visitor)
     }
 }

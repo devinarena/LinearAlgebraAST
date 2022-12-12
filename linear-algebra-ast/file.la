@@ -1,4 +1,13 @@
 
-let A = [1 2 3|1 5 6];
+let A = [1 2|3 4];
+let B = inv(A);
 
-print REF(A);
+print A;
+newline;
+print ref(A);
+newline;
+print rref(A);
+newline;
+print B;
+newline;
+print A * B;

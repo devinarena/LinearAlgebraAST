@@ -79,6 +79,44 @@ impl ExpressionVisitor<Value> for Interpreter {
                     Value::wrap_matrix(new_matrix)
                 }
             },
+            TokenType::TOKEN_REF => match right.data {
+                ValueType::SCALAR(_) => {
+                    self.runtime_error("Cannot convert scalar to REF matrix");
+                    Value::new_scalar(0.0)
+                }
+                ValueType::MATRIX(m) => {
+                    let mut new_matrix = m.clone();
+                    new_matrix.ref_matrix();
+                    Value::wrap_matrix(new_matrix)
+                }
+            },
+            TokenType::TOKEN_RREF => match right.data {
+                ValueType::SCALAR(_) => {
+                    self.runtime_error("Cannot convert scalar to RREF matrix");
+                    Value::new_scalar(0.0)
+                }
+                ValueType::MATRIX(m) => {
+                    let mut new_matrix = m.clone();
+                    new_matrix.rref_matrix();
+                    Value::wrap_matrix(new_matrix)
+                }
+            },
+            
+            TokenType::TOKEN_INVERSE => match right.data {
+                ValueType::SCALAR(_) => {
+                    self.runtime_error("Cannot convert scalar to RREF matrix");
+                    Value::new_scalar(0.0)
+                }
+                ValueType::MATRIX(m) => {
+                    let mut new_matrix = m.clone();
+                    if new_matrix.inverse() {
+                        Value::wrap_matrix(new_matrix)
+                    } else {
+                        self.runtime_error("Matrix is not invertible");
+                        Value::new_scalar(0.0)
+                    }
+                }
+            },
             _ => {
                 self.runtime_error("Invalid unary operator");
                 Value::new_scalar(0.0)

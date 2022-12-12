@@ -59,4 +59,6 @@ pub enum TokenType {
     TOKEN_LET,
     TOKEN_IDENTITY,
     TOKEN_REF,
+    TOKEN_RREF,
+    TOKEN_INVERSE
 }

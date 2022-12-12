@@ -1,5 +1,6 @@
 use crate::ast::expression::Binary;
 use crate::ast::expression::Expression;
+use crate::ast::expression::Grouping;
 use crate::ast::expression::Identifier;
 use crate::ast::expression::Literal;
 use crate::ast::expression::Unary;
@@ -10,6 +11,7 @@ use crate::ast::statement::PrintStatement;
 use crate::ast::statement::Statement;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
+use crate::value::Matrix;
 use crate::value::Value;
 
 pub struct Parser {
@@ -157,7 +159,7 @@ impl Parser {
                 ) {
                     return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
                 }
-                return expr;
+                return Expression::Grouping(Grouping::new(Box::new(expr)));
             }
             TokenType::TOKEN_IDENTIFIER => {
                 let identifier = token.lexeme.clone();
@@ -181,21 +183,11 @@ impl Parser {
                     return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
                 }
                 if rows >= 1.0 && rows == (rows as u32) as f64 {
-                    let mut entries = Vec::new();
-                    for i in 0..(rows as u32) {
-                        for j in 0..(rows as u32) {
-                            entries.push(((i == j) as u32) as f64);
-                        }
-                    }
                     self.consume(
                         TokenType::TOKEN_RIGHT_PAREN,
                         "Expect ')' to close identity matrix dimensions.",
                     );
-                    return Expression::Literal(Literal::new(Value::new_matrix(
-                        entries,
-                        rows as usize,
-                        rows as usize,
-                    )));
+                    return Expression::Literal(Literal::new(Value::wrap_matrix(Matrix::new_identity(rows as usize))));
                 } else {
                     self.parse_error(
                         "Identity should be of size (n) where n is a positive integer.",
@@ -203,16 +195,17 @@ impl Parser {
                     return Expression::Literal(Literal::new(Value::new_scalar(0.0)));
                 }
             }
-            TokenType::TOKEN_REF => {
+            TokenType::TOKEN_REF | TokenType::TOKEN_RREF | TokenType::TOKEN_INVERSE => {
+                // type checked at runtime rather than compile time
+                // i may need to move the environment
+                let operator = self.previous().clone();
                 self.consume(
                     TokenType::TOKEN_LEFT_PAREN,
-                    "Expect '(' following REF keyword",
+                    "Expect '(' following ref keyword",
                 );
                 let expr = self.expression();
-                self.consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' to close REF");
-                match expr {
-                    _ => todo!(),
-                }
+                self.consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' to close ref");
+                return Expression::Unary(Unary::new(operator, Box::new(expr)));
             }
             _ => {
                 self.parse_error("Unexpected token");
